@@ -1,0 +1,14 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "harness",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "dev/serve.py"
+      ],
+      "port": 8777,
+      "url": "http://127.0.0.1:8777"
+    }
+  ]
+}

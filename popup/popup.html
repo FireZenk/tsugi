@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Crunchyroll+</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <span class="logo"><span>crunchyroll</span><b>+</b></span>
+    <span class="ver" id="ver"></span>
+  </header>
+
+  <label class="row toggle">
+    <span>
+      <strong>Inicio rediseñado</strong>
+      <small>Sustituye la página principal de Crunchyroll</small>
+    </span>
+    <input type="checkbox" id="enabled">
+    <i class="knob"></i>
+  </label>
+
+  <div class="row">
+    <span>
+      <strong>Catálogo indexado</strong>
+      <small id="cat-info">—</small>
+      <small id="ext-info"></small>
+    </span>
+    <button id="reindex">Reindexar</button>
+  </div>
+
+  <div class="row">
+    <span>
+      <strong>Tu gusto</strong>
+      <small id="taste-info">—</small>
+    </span>
+    <button id="unhide">Restaurar 👎</button>
+  </div>
+
+  <a class="open" href="https://www.crunchyroll.com/" target="_blank" rel="noopener">Abrir Crunchyroll</a>
+  <script src="popup.js"></script>
+</body>
+</html>

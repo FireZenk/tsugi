@@ -1,0 +1,33 @@
+/* Injected at document_start on crunchyroll.com. Only does anything while CR+ is
+   active on the home route (html.crp-on): hides the original page and positions
+   our shadow-DOM host. */
+html.crp-on {
+  background: #0d0d12 !important;
+  overflow: hidden !important;
+}
+html.crp-on > body {
+  display: none !important;
+}
+#crp-host {
+  all: initial;
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 2147483646;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: #0d0d12;
+  color-scheme: dark;
+  outline: none;
+}
+html:not(.crp-on) #crp-host {
+  display: none;
+}
+#crp-pill {
+  all: initial;
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 2147483646;
+}
