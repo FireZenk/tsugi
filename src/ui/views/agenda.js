@@ -16,7 +16,10 @@ CRP.views.agenda = (ctx) => {
   };
   const openSeries = (s) => ctx.openSeries((CRP.catalog.get && CRP.catalog.get(s.id)) || { id: s.id, title: s.title, slug: s.slug, genres: [], audio: [], subs: [] });
   const playLink = (s) => (s.next
-    ? h('a.btn.small', { href: M.episodeUrl(s.next), title: s.next.title }, ui.icon('play', 14), M.epLabel(s.next))
+    ? [
+      h('a.btn.small', { href: M.episodeUrl(s.next), title: s.next.title }, ui.icon('play', 14), M.epLabel(s.next)),
+      h('button.btn.ghost.small.icononly', { title: `Marcar ${M.epLabel(s.next)} como visto`, onclick: () => ctx.markWatched({ ...s.next, seriesId: s.id, seriesTitle: s.title }) }, ui.icon('check', 14)),
+    ]
     : null);
   const schedule = (s) => {
     if (!s.nextRelease) return null;
@@ -98,13 +101,59 @@ CRP.views.agenda = (ctx) => {
       b.setBody(h('div.tags', upToDate.map((s) => h('button.tag', { onclick: () => openSeries(s) }, s.title, s.airing && s.nextRelease ? h('small', ` · ${DAYS[new Date(s.nextRelease).getDay()]}`) : null))));
       blocks.push(b.el);
     }
-    if (unstarted.length) {
+    // Your queue: unstarted watchlist series in your order (Hoy proposes from the top).
+    const queue = ctx.queue(ag);
+    if (queue.length) {
+      const ids = queue.map((s) => s.id);
+      const move = (i, to) => { const next = ids.filter((_, j) => j !== i); next.splice(to, 0, ids[i]); ctx.setQueueOrder(next); };
       const b = ui.block({
-        title: 'En tu lista sin empezar',
-        subtitle: `${unstarted.length} series`,
+        title: 'Tu cola',
+        subtitle: `${queue.length} series de tu lista sin empezar · ordénalas y «¿Qué veo?» empezará por arriba`,
         controls: [h('button.btn.ghost.small', { onclick: () => ctx.search({ text: 'en mi lista sin ver' }) }, 'Filtrar en Buscar')],
       });
-      b.setBody(h('div.tags', unstarted.map((s) => h('button.tag', { onclick: () => openSeries(s) }, s.title, s.airing ? h('small', ' · en emisión') : null))));
+      b.setBody(h('div.slist.queue', queue.map((s, i) => {
+        const rec = CRP.catalog.get && CRP.catalog.get(s.id);
+        const al = CRP.ext.score(s.id);
+        const meta = [rec && rec.kind === 'movie_listing' ? 'Película' : s.totalEps ? `${s.totalEps} ep` : null, al != null ? `AniList ${al}` : null, s.airing ? 'en emisión' : null].filter(Boolean).join(' · ');
+        return h('div.srow',
+          h('button.sposter', { onclick: () => openSeries(s), title: 'Ver ficha' }, poster(s.id)),
+          h('div.sinfo', h('button.stitle', { onclick: () => openSeries(s) }, h('span.qpos', i + 1), s.title), h('div.smeta', meta)),
+          h('div.sacts',
+            i > 0 ? h('button.icon', { title: 'Poner la primera', onclick: () => move(i, 0) }, '⤒') : null,
+            i > 0 ? h('button.icon', { title: 'Subir', onclick: () => move(i, i - 1) }, ui.icon('up', 16)) : null,
+            i < queue.length - 1 ? h('button.icon', { title: 'Bajar', onclick: () => move(i, i + 1) }, ui.icon('down', 16)) : null));
+      })));
+      blocks.push(b.el);
+    }
+
+    // Clean-up: finished and abandoned series still sitting in the watchlist.
+    const finished = upToDate.filter((s) => s.inList && !s.airing);
+    const dropped = abandoned.filter((s) => s.inList);
+    if (finished.length || dropped.length) {
+      const b = ui.block({ title: 'Limpiar Mi lista', subtitle: 'Series que ya no hace falta tener en la lista' });
+      const action = (label, list) => {
+        const box = h('div.cleanrow',
+          h('div', h('b', label), h('div.smeta', list.slice(0, 6).map((x) => x.title).join(' · ') + (list.length > 6 ? ` y ${list.length - 6} más` : ''))));
+        const btn = h('button.btn.ghost.small', {
+          onclick: () => {
+            const confirm = h('span.confirm', `¿Quitar ${list.length} de tu lista de Crunchyroll? `,
+              h('button.btn.small', {
+                onclick: async () => {
+                  confirm.textContent = 'Quitando…';
+                  await ctx.removeManyFromWatchlist(list.map((x) => ({ id: x.id, title: x.title })), (d, n) => { confirm.textContent = `Quitando ${d}/${n}…`; });
+                },
+              }, 'Quitar'),
+              h('button.btn.ghost.small', { onclick: () => confirm.replaceWith(btn) }, 'Cancelar'));
+            btn.replaceWith(confirm);
+          },
+        }, `Quitar ${list.length}`);
+        box.append(btn);
+        return box;
+      };
+      b.setBody(
+        finished.length ? action(`${finished.length} terminadas (vistas enteras y sin episodios nuevos)`, finished) : null,
+        dropped.length ? action(`${dropped.length} abandonadas (más de 60 días sin verlas)`, dropped) : null,
+      );
       blocks.push(b.el);
     }
     fill(el, blocks);
@@ -127,6 +176,7 @@ CRP.views.agenda = (ctx) => {
   }
   function refresh() { ctx.data.agenda.reset(); start(); }
 
+  ctx.on('progress', 'agenda', () => el.isConnected && start());
   start();
   return { el, title: 'Agenda', refresh };
 };

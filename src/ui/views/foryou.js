@@ -64,7 +64,7 @@ CRP.views.foryou = (ctx) => {
     if (!graph) return;
     const index = CRP.catalog.current();
     const r = CRP.recs.rank(graph, {
-      catalog: index, stats: ctx.seriesStats(), inWatchlist: ctx.inWatchlist, isSeen: CRP.profile.seen, tune, dub: ctx.dub(), limit: 72,
+      catalog: index, stats: ctx.seriesStats(), inWatchlist: ctx.inWatchlist, isSeen: ctx.seenElsewhere, tune, dub: ctx.dub(), limit: 72,
     });
     renderPanel(r);
     fill(head, h('div.qline',

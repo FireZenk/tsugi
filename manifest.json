@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Crunchyroll+",
   "short_name": "CR+",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "description": "Convierte el inicio de Crunchyroll en una herramienta: búsqueda por filtros reales (doblaje, duración, nota…) en todo el catálogo, recomendaciones que controlas, agenda de estrenos y pendientes.",
   "permissions": [
     "storage",

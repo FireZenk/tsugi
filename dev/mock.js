@@ -180,8 +180,21 @@
       studios: { nodes: [{ name: STUDIOS[h % STUDIOS.length] }] },
       trailer: h % 4 ? { id: 'aqz-KE-bpKQ', site: 'youtube' } : null,
       nextAiringEpisode: s._airing ? { airingAt: Math.round((releaseAt(s, s._released + 1) - 3600000) / 1000), episode: s._released + 1 } : null,
+      title: { english: s.title + (k ? ` Season ${k + 1}` : ''), romaji: s.title }, format: s.type === 'movie_listing' ? 'MOVIE' : 'TV',
+      episodes: s._per, startDate: { year: s.series_metadata.series_launch_year + k, month: 4, day: 1 },
+      // seasons chain; every 5th show also has a side-story film
+      relations: { edges: [
+        ...(k > 0 ? [{ relationType: 'PREQUEL', node: { id: id - 1, type: 'ANIME', relations: { edges: [] } } }] : []),
+        ...(k + 1 < s._seasons ? [{ relationType: 'SEQUEL', node: { id: id + 1, type: 'ANIME', relations: { edges: [] } } }] : []),
+        ...(h % 5 === 0 && k === 0 ? [{ relationType: 'SIDE_STORY', node: { id: 900000 + h, type: 'ANIME', relations: { edges: [] } } }] : []),
+      ] },
     };
   };
+  const filmOf = (id) => ({
+    id, idMal: null, genres: [], source: 'MANGA', status: 'FINISHED', tags: [], studios: { nodes: [] }, trailer: null, nextAiringEpisode: null,
+    title: { english: 'Película especial ' + (id - 900000), romaji: '' }, format: 'MOVIE', episodes: 1, startDate: { year: 2021, month: 8, day: 1 },
+    relations: { edges: [] }, externalLinks: [],
+  });
   const anilistMock = async (body) => {
     await delay(150);
     const data = {};
@@ -198,8 +211,9 @@
     if (q.includes('id_in') || q.includes('idMal_in')) {
       const mal = q.includes('idMal_in');
       const ids = body.variables.ids || [];
-      const media = ids.map((id) => (mal ? id - 50000 + 100000 : id)).map(detailsOf).filter(Boolean)
-        .map((d) => ({ ...d, externalLinks: [{ url: `https://www.crunchyroll.com/series/${seriesOfAl(d.id).id}` }] }));
+      const media = ids.map((id) => (mal ? id - 50000 + 100000 : id))
+        .map((id) => (id >= 900000 ? filmOf(id) : detailsOf(id))).filter(Boolean)
+        .map((d) => (d.format === 'MOVIE' && d.id >= 900000 ? d : { ...d, externalLinks: [{ url: `https://www.crunchyroll.com/series/${seriesOfAl(d.id).id}` }] }));
       return respond({ Page: { media } });
     }
     Object.entries(body.variables || {}).forEach(([k, term]) => {
@@ -269,6 +283,9 @@
     if (p === '/content/v2/acc/watch-history') return json({ data: HISTORY, meta: {} });
     if (p === '/content/v2/discover/acc/watchlist') return json({ total: WATCHLIST.length, data: WATCHLIST.slice(start, start + n) });
     if (p.startsWith('/content/v2/acc/watchlist')) return new Response(null, { status: 204 });
+    if (p.startsWith('/content/v2/discover/acc/mark_as_watched/') || p.startsWith('/content/v2/acc/watch-history/')) return new Response(null, { status: 204 });
+    if (p.startsWith('/content-reviews/v2/user/acc/rating/')) return json({ rating: JSON.parse(init.body || '{}').rating });
+    if (p.startsWith('/content-reviews/v3/user/acc/rating/')) return json({ rating: '' });
     console.warn('[mock] unhandled', p);
     return json({ error: 'not mocked' }, 404);
   };

@@ -28,7 +28,7 @@ CRP.app = (() => {
 
   function createCtx(root, auth) {
     const loggedIn = !auth.anonymous;
-    const listeners = { watchlist: new Map(), taste: new Map(), ext: new Map(), shelves: new Map() };
+    const listeners = { watchlist: new Map(), taste: new Map(), ext: new Map(), shelves: new Map(), progress: new Map() };
     const emit = (ev) => (listeners[ev] || new Map()).forEach((fn) => { try { fn(); } catch (e) { console.warn('[CR+]', e); } });
     let watchlistIds = new Set();
     let stats = new Map();
@@ -98,7 +98,7 @@ CRP.app = (() => {
     data.graph = lazy(async () => {
       await CRP.catalog.load();
       const [, watchlist] = await Promise.all([data.history(), data.watchlistSeries()]);
-      return CRP.recs.prepare({ stats, watchlist, imported: CRP.profile.entries(), onProgress: graphProgress.emit });
+      return CRP.recs.prepare({ stats, watchlist, imported: ctx.tasteEntries(), onProgress: graphProgress.emit });
     });
     data.graphNow = () => data.graph.now();
     data.agenda = lazy(async () => {
@@ -119,9 +119,13 @@ CRP.app = (() => {
       root, auth, loggedIn, data,
       settings: () => store.get(),
       seriesStats: () => stats,
-      hasWatched: (id) => stats.has(id) || CRP.profile.seen(id),
+      hasWatched: (id) => stats.has(id) || CRP.profile.seen(id) || !!store.getRating(id),
+      // seen outside the Crunchyroll history: imported list or rated here
+      seenElsewhere: (id) => CRP.profile.seen(id) || !!store.getRating(id),
       // card badge: in your list / seen here / seen per your imported list (with your score)
       badge(x) {
+        const mine = store.getRating(x.id);
+        if (mine) return `TU NOTA ${'★'.repeat(mine.stars)}`;
         if (watchlistIds.has(x.id)) return 'EN TU LISTA';
         if (stats.has(x.id)) return 'VISTA';
         const imp = CRP.profile.get(x.id);
@@ -141,7 +145,7 @@ CRP.app = (() => {
         const graph = data.graph.now();
         const catalog = CRP.catalog.current();
         if (!graph || !catalog) return { items: [], seeds: [], profile: [] };
-        return CRP.recs.rank(graph, { catalog, stats, inWatchlist: ctx.inWatchlist, isSeen: CRP.profile.seen, tune: store.get().tune, dub: store.dubLocale(), limit });
+        return CRP.recs.rank(graph, { catalog, stats, inWatchlist: ctx.inWatchlist, isSeen: ctx.seenElsewhere, tune: store.get().tune, dub: store.dubLocale(), limit });
       },
 
       openOriginal() {
@@ -173,6 +177,94 @@ CRP.app = (() => {
           apply(had);
           ui.toast('No se pudo actualizar Mi lista. Inténtalo en la página de la serie.');
         }
+      },
+
+      // Taste entries for the recommender: imported list + stars given here (these win).
+      tasteEntries() {
+        const map = new Map(CRP.profile.entries().map((e) => [e.id, e]));
+        for (const r of store.ratingList()) map.set(r.id, { id: r.id, s: r.stars * 20, stars: r.stars, st: 'completed' });
+        return [...map.values()];
+      },
+
+      // Your stars: saved here, sent to Crunchyroll (optional), and fed to the recommender.
+      async rate(series, stars) {
+        const prev = store.getRating(series.id);
+        const value = prev && prev.stars === stars ? 0 : stars; // clicking your current rating clears it
+        await store.setRating(series.id, value, series.title);
+        if (value && loggedIn && store.get().rateToCR !== false) {
+          api.rateSeries(series.id, value).catch((e) => {
+            CRP.diag.error('valorar en Crunchyroll', e);
+            ui.toast('Guardada en CR+, pero Crunchyroll no aceptó la valoración.');
+          });
+        }
+        const g = data.graph.now();
+        if (g && value) {
+          const s = value * 20;
+          g.seeds = g.seeds.filter((x) => x.id !== series.id);
+          g.importNeg = (g.importNeg || []).filter((id) => id !== series.id);
+          if (s >= 80) g.seeds.push({ id: series.id, title: series.title, w: 0, s, stars: value, kind: 'import' });
+          if (s <= 40) g.importNeg.push(series.id);
+          await CRP.recs.extend(g, series.id);
+        }
+        emit('taste');
+        return value;
+      },
+
+      // Unstarted watchlist series in the user's order (then AniList score) — "Tu cola".
+      queue(ag) {
+        const q = store.getQueue();
+        const pos = (id) => { const i = q.indexOf(id); return i < 0 ? Infinity : i; };
+        const score = (id) => { const al = CRP.ext.score(id); if (al != null) return al; const x = CRP.catalog.get(id); return x && x.quality ? x.quality * 18 : 0; };
+        return (ag ? ag.series : []).filter((s) => s.state === 'unstarted' && s.inList)
+          .sort((a, b) => pos(a.id) - pos(b.id) || score(b.id) - score(a.id));
+      },
+      async setQueueOrder(ids) { await store.setQueue(ids); emit('progress'); },
+
+      // Remove several series from the Crunchyroll watchlist (with undo).
+      async removeManyFromWatchlist(list, onStep) {
+        const done = [];
+        for (const x of list) {
+          try { await api.removeFromWatchlist(x.id); done.push(x); watchlistIds.delete(x.id); } catch (e) { CRP.diag.error('quitar de lista', e); }
+          onStep && onStep(done.length, list.length);
+        }
+        emit('watchlist');
+        data.agenda.reset();
+        emit('progress');
+        ui.toast(`${done.length} series quitadas de Mi lista`, {
+          action: {
+            label: 'Deshacer',
+            run: async () => {
+              for (const x of done) { try { await api.addToWatchlist(x.id); watchlistIds.add(x.id); } catch (e) { /* keep going */ } }
+              emit('watchlist'); data.agenda.reset(); emit('progress');
+            },
+          },
+          ms: 8000,
+        });
+        return done.length;
+      },
+
+      // Mark an episode watched on Crunchyroll (with undo), then refresh what depends on it.
+      async markWatched(ep) {
+        try {
+          await api.markWatched(ep.id);
+        } catch (e) {
+          ui.toast('Crunchyroll no aceptó marcarlo como visto.');
+          return false;
+        }
+        const refresh = () => { data.continue.reset(); data.history.reset(); data.agenda.reset(); store.cacheClear('ag:' + ep.seriesId); emit('progress'); };
+        refresh();
+        ui.toast(`Visto: ${ep.seriesTitle || ''} ${M.epLabel(ep)}`, {
+          action: { label: 'Deshacer', run: async () => { await api.unmarkWatched(ep.id).catch(() => {}); refresh(); } },
+        });
+        return true;
+      },
+      // Hide a "Sigue viendo" entry locally (Crunchyroll keeps it); it comes back with a newer episode.
+      async hideContinue(ep) {
+        await store.setContHidden(ep.seriesId, ep.id);
+        emit('progress');
+        ui.toast(`«${ep.seriesTitle || ep.title}» quitada de Sigue viendo`, {
+          action: { label: 'Deshacer', run: async () => { await store.setContHidden(ep.seriesId, null); emit('progress'); } },
+        });
       },
 
       async like(series) {
@@ -287,7 +379,8 @@ CRP.app = (() => {
     const wrap = h('div.setsec');
     const status = h('p.hint');
     const head = [h('h4', 'Tu perfil de AniList / MyAnimeList'),
-      h('p.hint', 'Importa tu lista pública: lo que ya viste (aunque no fuera en Crunchyroll) y tus notas, que pesan mucho en las recomendaciones.')];
+      h('p.hint', 'Importa tu lista pública: lo que ya viste (aunque no fuera en Crunchyroll) y tus notas, que pesan mucho en las recomendaciones.'),
+      ctx.loggedIn ? ui.toggle('Enviar mis estrellas (de la ficha) también a Crunchyroll', s.rateToCR !== false, (v) => store.set({ rateToCR: v })) : null];
     if (sum) {
       const src = sum.source === 'mal' ? 'MyAnimeList' : 'AniList';
       fill(wrap, head,
@@ -508,14 +601,28 @@ CRP.app = (() => {
           h('button.btn', { onclick: () => ctx.openOriginal() }, 'Iniciar sesión')));
       }
 
+      // Keyboard: / search · 1–4 tabs · J/K move between cards · Enter/F quick view ·
+      // L add/remove from list · ? help. Ignored while typing.
       const onKey = (e) => {
-        if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey) return;
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
         const t = e.composedPath()[0];
         if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
-        e.preventDefault();
-        e.stopPropagation();
-        input.focus();
-        input.select();
+        const handled = () => { e.preventDefault(); e.stopPropagation(); };
+        if (e.key === '/') { handled(); input.focus(); input.select(); return; }
+        if (/^[1-4]$/.test(e.key)) { handled(); go(TABS[+e.key - 1].id); return; }
+        if (e.key === '?') { handled(); toggleHelp(); return; }
+        const scope = !app.querySelector('aside.qv').hidden ? app.querySelector('aside.qv') : main.querySelector('.view:not([hidden])');
+        if (!scope) return;
+        const cards = [...scope.querySelectorAll('a.card')].filter((c) => c.offsetParent);
+        const cur = shadow.activeElement && shadow.activeElement.closest ? shadow.activeElement.closest('a.card') : null;
+        const i = cur ? cards.indexOf(cur) : -1;
+        const key = e.key.toLowerCase();
+        if (key === 'j' || key === 'k') {
+          handled();
+          const next = cards[Math.max(0, Math.min(cards.length - 1, i + (key === 'j' ? 1 : -1)))] || cards[0];
+          if (next) { next.focus({ preventScroll: true }); next.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' }); }
+        } else if (key === 'f' && cur) { handled(); cur.click(); }
+        else if (key === 'l' && cur) { const b = cur.querySelector('button.act.list'); if (b) { handled(); b.click(); } }
       };
       if (offKey) offKey();
       window.addEventListener('keydown', onKey, true);
@@ -527,6 +634,17 @@ CRP.app = (() => {
       host.focus({ preventScroll: true });
     };
 
+    let help = null;
+    function toggleHelp() {
+      if (help) { help.remove(); help = null; return; }
+      const row = (k, d) => h('div.hrow', h('kbd', k), h('span', d));
+      help = h('div.kbdhelp', { onclick: () => toggleHelp() },
+        h('div.kbdbox',
+          h('h3', 'Atajos de teclado'),
+          row('/', 'Buscar'), row('1 – 4', 'Hoy · Buscar · Para ti · Agenda'), row('J / K', 'Siguiente / anterior serie'),
+          row('Enter o F', 'Abrir la ficha'), row('L', 'Añadir o quitar de Mi lista'), row('Esc', 'Cerrar ficha / ajustes'), row('?', 'Esta ayuda')));
+      app.append(help);
+    }
     const cleanup = [() => offKey && offKey()];
     // Profile switched: rebuild everything for the new identity.
     cleanup.push(api.onIdentityChange(() => { if (!disposed) start(); }));

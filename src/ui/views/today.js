@@ -15,7 +15,38 @@ CRP.views.today = (ctx) => {
   const weekBlock = ui.block({ title: 'Esta semana', controls: [h('button.btn.ghost.small', { onclick: () => ctx.go('agenda') }, 'Abrir agenda')] });
   const quickBlock = ui.block({ title: 'Búsquedas rápidas', subtitle: 'Cosas que en Crunchyroll no se pueden filtrar' });
   const shelvesHost = h('div.shelves');
-  fill(el, pickBlock.el, contBlock.el, shelvesHost, weekBlock.el, quickBlock.el);
+  const moodBlock = ui.block({ title: '¿Qué te apetece?', subtitle: 'Elige un plan y te enseño lo mejor que no has visto' });
+  fill(el, pickBlock.el, contBlock.el, moodBlock.el, shelvesHost, weekBlock.el, quickBlock.el);
+
+  // ---------------------------------------------------------------- moods
+  // Each mood is just a search (same parser and engine as Buscar), best rated first.
+  const MOODS = [
+    { id: 'light', title: 'Algo ligero', q: 'comedia sin tragedia ni gore sin ver' },
+    { id: 'epic', title: 'Épico', q: 'accion aventura buenas sin ver' },
+    { id: 'cry', title: 'Para llorar', q: 'drama tragedia sin ver' },
+    { id: 'think', title: 'Para pensar', q: 'psicologico sin ver' },
+    { id: 'mystery', title: 'Misterio', q: 'misterio sin ver' },
+    { id: 'love', title: 'Romántico', q: 'romance sin tragedia sin ver' },
+    { id: 'chill', title: 'Relajante', q: 'relajante sin ver' },
+    { id: 'tense', title: 'Tensión', q: 'supervivencia sin ver' },
+    { id: 'fantasy', title: 'Otros mundos', q: 'isekai sin ver' },
+  ];
+  let mood = null;
+  function renderMood() {
+    if (!cat.current()) return;
+    const runs = MOODS.map((m) => ({ m, r: CRP.finder.run({ text: m.q, facets: {}, sort: 'rating' }, ctx, renderMood) }));
+    const chipsEl = ui.chips(runs.map(({ m, r }) => ({ id: m.id, title: m.title, count: r.list.length })), {
+      value: mood, onChange: (v) => { mood = v === mood ? null : v; renderMood(); },
+    });
+    const cur = runs.find((x) => x.m.id === mood);
+    moodBlock.setBody(chipsEl, cur
+      ? h('div.moodrow',
+        cur.r.list.length
+          ? ui.row(cur.r.list.slice(0, 18).map((x) => ui.posterCard(x, { ctx, badge: ctx.badge(x), actions: ['list', 'like', 'dislike'] })))
+          : ui.empty('Nada sin ver con este plan. Prueba otro.'),
+        h('button.btn.ghost.small', { onclick: () => ctx.search({ text: cur.m.q, facets: {}, sort: 'rating' }) }, `Ver las ${cur.r.list.length} en Buscar`))
+      : null);
+  }
 
   // ------------------------------------------------------------ shelves
   // The user's saved searches, each a live row (same engine as Buscar).
@@ -98,9 +129,11 @@ CRP.views.today = (ctx) => {
         .map((r) => ({ kind: 'series', s: r.series, why: CRP.recs.why(r), traits: r.traits }));
       return finish.concat(movies);
     }
-    // binge: finished series, 10–40 episodes, best ranked
-    return (recs || []).filter((r) => r.series.kind !== 'movie_listing' && !cat.isAiring(r.series) && r.series.episodes >= 10 && r.series.episodes <= 40)
-      .map((r) => ({ kind: 'series', s: r.series, why: CRP.recs.why(r), traits: r.traits }));
+    // binge: your queue first, then finished series of 10–40 episodes, best ranked
+    const queued = ctx.queue(ag).map((q) => CRP.catalog.get(q.id)).filter(Boolean)
+      .map((x) => ({ kind: 'series', s: x, why: 'Siguiente en tu cola', traits: [x.episodes ? `${x.episodes} ep` : null].filter(Boolean) }));
+    return queued.concat((recs || []).filter((r) => r.series.kind !== 'movie_listing' && !cat.isAiring(r.series) && r.series.episodes >= 10 && r.series.episodes <= 40)
+      .map((r) => ({ kind: 'series', s: r.series, why: CRP.recs.why(r), traits: r.traits })));
   }
 
   function bigCard(c) {
@@ -114,6 +147,7 @@ CRP.views.today = (ctx) => {
           h('div.bpsub', `${M.epLabel(e)} — ${e.title}`),
           h('div.bpacts',
             h('a.btn', { href: M.episodeUrl(e) }, ui.icon('play', 16), 'Ver ahora'),
+            h('button.btn.ghost', { title: 'Marcar este episodio como visto', onclick: () => ctx.markWatched(e) }, ui.icon('check', 14), 'Ya lo vi'),
             h('button.btn.ghost', { onclick: () => ctx.openSeries(cat.get(c.series.id) || { id: c.series.id, title: c.series.title, genres: [], audio: [], subs: [] }) }, 'Ficha'),
             h('button.btn.ghost', { onclick: () => { offset++; renderPick(); } }, ui.icon('refresh', 14), 'Otra'))));
     }
@@ -171,11 +205,19 @@ CRP.views.today = (ctx) => {
     contBlock.setBody(ui.skeleton('ep', 5));
     try {
       const items = await ctx.data.continue();
-      const list = uniqBy(items.filter((it) => !it.fully_watched).map((it) => ({ it, e: M.episode(it.panel) })).filter((x) => x.e), (x) => x.e.seriesId || x.e.id);
+      const list = uniqBy(items.filter((it) => !it.fully_watched).map((it) => ({ it, e: M.episode(it.panel) }))
+        .filter((x) => x.e && !CRP.store.isContHidden(x.e.seriesId, x.e.id)), (x) => x.e.seriesId || x.e.id);
       if (!list.length) { contBlock.el.hidden = true; return; }
+      contBlock.el.hidden = false;
       contBlock.setBody(ui.row(list.map(({ it, e }) => {
         const p = it.playhead && e.durationMs ? (it.playhead * 1000) / e.durationMs : 0;
-        return ui.episodeCard(e, { progress: p > 0.02 ? p : 0, badge: it.new ? 'NUEVO' : null, sub: p > 0.02 ? null : 'Siguiente episodio' });
+        return ui.episodeCard(e, {
+          progress: p > 0.02 ? p : 0, badge: it.new ? 'NUEVO' : null, sub: p > 0.02 ? null : 'Siguiente episodio',
+          acts: [
+            { icon: 'check', title: 'Marcar como visto', run: () => ctx.markWatched(e) },
+            { icon: 'x', title: 'Quitar de Sigue viendo', cls: 'hide', run: () => ctx.hideContinue(e) },
+          ],
+        });
       }), { kind: 'ep' }));
     } catch (e) {
       contBlock.setBody(ui.errorBox(e, renderContinue));
@@ -235,9 +277,15 @@ CRP.views.today = (ctx) => {
 
   ctx.on('taste', 'today', () => { if (ctx.data.graphNow()) { ranked = ctx.rank(80); renderPick(); } renderShelves(); });
   ctx.on('shelves', 'today', renderShelves);
+  // something was marked watched / hidden: reload progress-dependent blocks
+  ctx.on('progress', 'today', () => {
+    renderContinue();
+    if (ctx.loggedIn) ctx.data.agenda().then((a) => { ag = a; renderPick(); renderWeek(); }).catch(() => {});
+  });
   ctx.on('watchlist', 'today', renderShelves);
   ctx.on('ext', 'today', renderShelves);
-  CRP.catalog.load().then(renderShelves).catch(() => {});
+  CRP.catalog.load().then(() => { renderShelves(); renderMood(); }).catch(() => {});
+  ctx.on('ext', 'today-mood', renderMood);
   start();
   return { el, title: 'Hoy' };
 };

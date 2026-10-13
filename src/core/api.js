@@ -226,6 +226,17 @@ CRP.api = (() => {
     return out;
   }
 
+  // Same calls the site uses for "Marcar como visto" and for removing history items.
+  const markWatched = (contentIds) =>
+    personal('POST', '/content/v2/discover/{id}/mark_as_watched/' + [].concat(contentIds).map(encodeURIComponent).join(','), {});
+  const unmarkWatched = (contentIds) =>
+    personal('DELETE', '/content/v2/{id}/watch-history/' + [].concat(contentIds).map(encodeURIComponent).join(','), {});
+  // Your star rating on Crunchyroll ("1s".."5s").
+  const rateSeries = (seriesId, stars) =>
+    personal('PUT', `/content-reviews/v2/user/{id}/rating/series/${encodeURIComponent(seriesId)}`, { body: { rating: `${stars}s` } });
+  const myRating = (seriesId) =>
+    personal('GET', `/content-reviews/v3/user/{id}/rating/series/${encodeURIComponent(seriesId)}`, {});
+
   const seriesInfo = (id) => get('/content/v2/cms/series/' + id).then((r) => (r.data || [])[0] || null);
   const seasons = (id) => get(`/content/v2/cms/series/${id}/seasons`).then((r) => r.data || []);
   const episodes = (seasonId) => get(`/content/v2/cms/seasons/${seasonId}/episodes`).then((r) => r.data || []);
@@ -236,6 +247,6 @@ CRP.api = (() => {
     ApiError, session, onIdentityChange,
     continueWatching, watchHistory, watchlist, addToWatchlist, removeFromWatchlist,
     browse, search, similar, seasonalTags, categories, objects,
-    seriesInfo, seasons, episodes, upNext,
+    seriesInfo, seasons, episodes, upNext, markWatched, unmarkWatched, rateSeries, myRating,
   };
 })();

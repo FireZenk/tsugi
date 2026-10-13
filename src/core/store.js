@@ -10,6 +10,7 @@ CRP.store = (() => {
     dub: 'auto',           // preferred dub language ('auto' = from site locale, 'none')
     // Recommender knobs, all -1..1 except explore (0..1)
     tune: { pop: 0, len: 0, era: 0, explore: 0.3, dubOnly: false },
+    rateToCR: true,        // also send star ratings to Crunchyroll
   };
 
   let settings = null;
@@ -17,17 +18,23 @@ CRP.store = (() => {
   let hidden = null;      // { [seriesId]: { title, ts } }
   let likes = null;       // { [seriesId]: { title, ts } }
   let muted = null;       // { [seriesId]: true } history seeds the user excluded
+  let hiddenCont = null;  // { [seriesId]: episodeId } hidden from "Sigue viendo" until a newer episode
+  let queue = null;       // [seriesId] — the user's order for unstarted watchlist series
+  let ratings = null;     // { [seriesId]: { stars: 1..5, title, ts } } — your stars, given in CR+
   const listeners = new Set();
 
   const area = (a) => chrome.storage[a];
 
   async function load() {
-    const [got, loc] = await Promise.all([area('sync').get('settings'), area('local').get(['hidden', 'likes', 'muted'])]);
+    const [got, loc] = await Promise.all([area('sync').get('settings'), area('local').get(['hidden', 'likes', 'muted', 'hiddenCont', 'queue', 'ratings'])]);
     const s = got.settings || {};
     settings = { ...DEFAULTS, ...s, tune: { ...DEFAULTS.tune, ...(s.tune || {}) } };
     hidden = loc.hidden || {};
     likes = loc.likes || {};
     muted = loc.muted || {};
+    hiddenCont = loc.hiddenCont || {};
+    queue = loc.queue || [];
+    ratings = loc.ratings || {};
     return settings;
   }
 
@@ -78,6 +85,24 @@ CRP.store = (() => {
     muted = on ? { ...rest, [id]: true } : rest;
     await area('local').set({ muted });
   }
+  const isContHidden = (seriesId, episodeId) => !!(hiddenCont && hiddenCont[seriesId] === episodeId);
+  async function setContHidden(seriesId, episodeId) {
+    const { [seriesId]: _, ...rest } = hiddenCont || {};
+    hiddenCont = episodeId ? { ...rest, [seriesId]: episodeId } : rest;
+    await area('local').set({ hiddenCont });
+  }
+  const getRating = (id) => (ratings && ratings[id]) || null;
+  async function setRating(id, stars, title) {
+    const { [id]: _, ...rest } = ratings || {};
+    ratings = stars ? { ...rest, [id]: { stars, title, ts: Date.now() } } : rest;
+    await area('local').set({ ratings });
+  }
+  const ratingList = () => toList(ratings);
+  const getQueue = () => queue || [];
+  async function setQueue(ids) {
+    queue = [...new Set(ids)];
+    await area('local').set({ queue });
+  }
   const toList = (o) => Object.entries(o || {}).map(([id, v]) => ({ id, ...v })).sort((a, b) => b.ts - a.ts);
   const hiddenList = () => toList(hidden);
   const likedList = () => toList(likes);
@@ -104,7 +129,7 @@ CRP.store = (() => {
 
   return {
     DEFAULTS, load, get, set, onChange, dubLocale,
-    isHidden, isLiked, isMuted, hide, unhide, like, unlike, setMuted, hiddenList, likedList,
+    isHidden, isLiked, isMuted, hide, unhide, like, unlike, setMuted, hiddenList, likedList, isContHidden, setContHidden, getQueue, setQueue, getRating, setRating, ratingList,
     cacheGet, cacheSet, cacheClear, localGet, localSet,
   };
 })();

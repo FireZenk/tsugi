@@ -76,6 +76,25 @@ CRP.drawer = (() => {
         h('a.btn.ghost.icononly', { href: M.seriesUrl(x), title: 'Abrir la página de la serie en Crunchyroll' }, ui.icon('external', 16)),
       );
 
+      // Your stars (click your current rating again to clear it).
+      const starsBox = h('div.mystars');
+      const renderStars = (value, note) => fill(starsBox,
+        h('span.lbl', 'Tu valoración'),
+        [1, 2, 3, 4, 5].map((n) => h('button.star' + (n <= value ? '.on' : ''), {
+          title: n <= value && n === value ? 'Quitar valoración' : `${n} estrella${n > 1 ? 's' : ''}`,
+          onclick: async () => { const v = await ctx.rate(x, n); renderStars(v); },
+        }, ui.icon('star', 18))),
+        note ? h('small', note) : null);
+      const mine = CRP.store.getRating(x.id);
+      renderStars(mine ? mine.stars : 0);
+      if (!mine && ctx.loggedIn) {
+        api.myRating(x.id).then((r) => {
+          const raw = r && (r.rating || (r.data && r.data.rating) || r.user_rating);
+          const m = String(raw || '').match(/^([1-5])s$/);
+          if (my === seq && m) { CRP.store.setRating(x.id, +m[1], x.title); renderStars(+m[1], 'de Crunchyroll'); }
+        }).catch(() => {});
+      }
+
       const facts = [
         x.kind === 'movie_listing' ? 'Película' : null,
         x.year,
@@ -125,7 +144,26 @@ CRP.drawer = (() => {
           });
           parts.push(thumb);
         }
-        const facts = [];
+        // Your stars (click your current rating again to clear it).
+      const starsBox = h('div.mystars');
+      const renderStars = (value, note) => fill(starsBox,
+        h('span.lbl', 'Tu valoración'),
+        [1, 2, 3, 4, 5].map((n) => h('button.star' + (n <= value ? '.on' : ''), {
+          title: n <= value && n === value ? 'Quitar valoración' : `${n} estrella${n > 1 ? 's' : ''}`,
+          onclick: async () => { const v = await ctx.rate(x, n); renderStars(v); },
+        }, ui.icon('star', 18))),
+        note ? h('small', note) : null);
+      const mine = CRP.store.getRating(x.id);
+      renderStars(mine ? mine.stars : 0);
+      if (!mine && ctx.loggedIn) {
+        api.myRating(x.id).then((r) => {
+          const raw = r && (r.rating || (r.data && r.data.rating) || r.user_rating);
+          const m = String(raw || '').match(/^([1-5])s$/);
+          if (my === seq && m) { CRP.store.setRating(x.id, +m[1], x.title); renderStars(+m[1], 'de Crunchyroll'); }
+        }).catch(() => {});
+      }
+
+      const facts = [];
         if (e && e.st && e.st.length) facts.push(h('span', 'Estudio: ', e.st.map((n, i) => [i ? ', ' : '', h('button.linkbtn', { onclick: () => { close(); ctx.search({ studio: n }); } }, n)])));
         if (e && e.src) facts.push(h('span', 'Origen: ', h('button.linkbtn', { onclick: () => { close(); ctx.search({ source: e.src }); } }, CRP.tags.sourceLabel(e.src))));
         const nx = CRP.ext.nextAiring(x.id);
@@ -138,6 +176,28 @@ CRP.drawer = (() => {
         fill(infoBox, parts);
       };
       renderInfo(CRP.ext.get(x.id));
+      // Watch order across the franchise (AniList relations), when there's more than one entry.
+      const orderBox = h('div.qvorder');
+      const FORMAT = { TV: 'Serie', TV_SHORT: 'Serie corta', MOVIE: 'Película', OVA: 'OVA', ONA: 'ONA', SPECIAL: 'Especial', MUSIC: 'Música' };
+      const renderOrder = (list, all = false) => {
+        if (!list || list.length < 2) return fill(orderBox);
+        let n = 0;
+        const rows = list.map((o) => {
+          const num = o.kind === 'main' ? ++n : null;
+          const target = o.cr && o.cr !== x.id ? (CRP.catalog.get(o.cr) || { id: o.cr, title: o.title, genres: [], audio: [], subs: [] }) : null;
+          const tag = o.cr === x.id ? h('span.otag.here', 'esta serie') : o.cr ? h('span.otag.cr', 'en Crunchyroll') : h('span.otag.no', 'no está en Crunchyroll');
+          const meta = [o.year, FORMAT[o.format] || o.format, o.episodes && o.format !== 'MOVIE' ? `${o.episodes} ep` : null, o.status === 'NOT_YET_RELEASED' ? 'próximamente' : null].filter(Boolean).join(' · ');
+          return h(target ? 'button.orow.link' : 'div.orow', { onclick: target ? () => open(target, { push: true }) : null },
+            h('span.onum' + (o.kind === 'extra' ? '.extra' : ''), num || '+'),
+            h('span.otitle', o.title, h('small', meta)),
+            tag);
+        });
+        fill(orderBox,
+          h('h3', 'Orden de visionado'),
+          h('p.mini', 'Numeradas: la historia principal. «+»: extras (películas, OVAs) colocados por fecha.'),
+          rows.slice(0, all ? rows.length : 10),
+          rows.length > 10 && !all ? h('button.linkbtn', { onclick: () => renderOrder(list, true) }, `Ver las ${rows.length}`) : null);
+      };
       const desc = h('p.qvdesc', x.description || '');
       const seasonsBox = h('div.qvseasons', h('div.mini', 'Cargando temporadas…'));
       const similarBox = h('div.qvsim', ui.skeleton('poster', 4, { layout: 'grid' }));
@@ -156,6 +216,7 @@ CRP.drawer = (() => {
           )),
         top.reason ? h('div.qvwhy', ui.icon('sparkle', 14), top.reason) : null,
         actions,
+        starsBox,
         progress,
         h('div.qvgrid',
           h('div.qvrating',
@@ -167,6 +228,7 @@ CRP.drawer = (() => {
         extBox,
         infoBox,
         desc,
+        orderBox,
         h('h3', 'Temporadas'), seasonsBox,
         h('h3', 'Parecidas'), similarBox,
       );
@@ -176,6 +238,7 @@ CRP.drawer = (() => {
           if (my !== seq) return;
           renderExt(e, null);
           renderInfo(e);
+          CRP.ext.watchOrder(x).then((list) => { if (my === seq) renderOrder(list); }).catch(() => {});
           const mal = e && e.mal ? await CRP.ext.malScore(e.mal).catch(() => null) : null;
           if (my === seq && mal) renderExt(e, mal);
         }).catch(() => { if (my === seq) fill(extBox, h('div.mini', 'No se pudo consultar AniList.')); });

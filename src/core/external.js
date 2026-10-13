@@ -279,6 +279,75 @@ CRP.ext = (() => {
     return get(x.id);
   }
 
+  // ------------------------------------------------------------- watch order
+  // Walk AniList relations from this series' entries: the PREQUEL/SEQUEL line plus
+  // side stories (films, OVAs), sorted by release date. Each entry says whether it's
+  // on Crunchyroll (via AniList's links) so the quick view can jump to it.
+  const FOLLOW = new Set(['PREQUEL', 'SEQUEL', 'PARENT', 'SIDE_STORY']);
+  // relations two hops deep per request, so long franchises need few requests
+  const ORDER_FIELDS = 'id title { english romaji } format episodes status startDate { year month day } externalLinks { url } relations { edges { relationType node { id type relations { edges { relationType node { id type } } } } } }';
+  async function watchOrder(x) {
+    const cached = await store.cacheGet('order:' + x.id, 7 * DAY);
+    if (cached) return cached;
+    const e = await ensure(x);
+    if (!e) return null;
+    const start = e.ids || [e.al];
+    const nodes = new Map();      // AniList id -> media
+    const kind = new Map();       // AniList id -> 'main' | 'extra'
+    start.forEach((id) => kind.set(id, 'main'));
+    const consider = (fromId, edge, next) => {
+      const n = edge.node;
+      if (n.type !== 'ANIME' || !FOLLOW.has(edge.relationType) || kind.has(n.id)) return null;
+      // side stories of side stories aren't part of the watch order
+      if (edge.relationType === 'SIDE_STORY' && kind.get(fromId) === 'extra') return null;
+      kind.set(n.id, edge.relationType === 'SIDE_STORY' ? 'extra' : kind.get(fromId) === 'extra' ? 'extra' : 'main');
+      next.push(n.id);
+      return n;
+    };
+    let frontier = start;
+    for (let round = 0; round < 8 && frontier.length && nodes.size < 40; round++) {
+      const data = await anilist(`query ($ids: [Int]) { Page(perPage: 50) { media(id_in: $ids, type: ANIME) { ${ORDER_FIELDS} } } }`, { ids: frontier });
+      const next = [];
+      for (const m of (data.Page && data.Page.media) || []) {
+        nodes.set(m.id, m);
+        for (const edge of m.relations.edges) {
+          const n1 = consider(m.id, edge, next) || (kind.has(edge.node.id) ? edge.node : null);
+          if (!n1 || !n1.relations) continue;
+          for (const edge2 of n1.relations.edges) consider(n1.id, edge2, next);
+        }
+      }
+      frontier = [...new Set(next)].filter((id) => !nodes.has(id)).slice(0, 40 - nodes.size);
+    }
+    const index = CRP.catalog.current();
+    const bySlug = index ? new Map(index.items.map((i) => [i.slug.toLowerCase(), i.id])) : new Map();
+    const crOf = (m) => {
+      for (const l of m.externalLinks || []) {
+        let u;
+        try { u = new URL(l.url); } catch (err) { continue; }
+        if (!/crunchyroll\.com$/.test(u.hostname)) continue;
+        const mm = u.pathname.match(/\/series\/([A-Z0-9]{8,})/);
+        if (mm && index && index.byId.has(mm[1])) return mm[1];
+        const seg = u.pathname.split('/').filter(Boolean);
+        if (seg.length === 1 && bySlug.has(seg[0].toLowerCase())) return bySlug.get(seg[0].toLowerCase());
+      }
+      return crFromAniList(m.id);
+    };
+    const date = (m) => (m.startDate.year || 9999) * 10000 + (m.startDate.month || 12) * 100 + (m.startDate.day || 28);
+    const list = [...nodes.values()].sort((a, b) => date(a) - date(b)).map((m) => ({
+      al: m.id,
+      title: m.title.english || m.title.romaji,
+      format: m.format,
+      episodes: m.episodes,
+      year: m.startDate.year,
+      status: m.status,
+      kind: kind.get(m.id) || 'main',
+      cr: crOf(m),
+      here: start.includes(m.id),
+    }));
+    await store.cacheSet('order:' + x.id, list);
+    return list;
+  }
+
   // ---------------------------------------------------------------- accessors
   function indexes() {
     if (byAl) return;
@@ -353,7 +422,7 @@ CRP.ext = (() => {
 
   return {
     load, get, score, enrich, ensure, malScore, quality, stats,
-    tags, themes, studios, source, trailer, nextAiring, crFromAniList, crFromMal, vocabulary,
+    tags, themes, studios, source, trailer, nextAiring, crFromAniList, crFromMal, vocabulary, watchOrder,
     onUpdate: (fn) => { updateFns.add(fn); return () => updateFns.delete(fn); },
     onProgress: (fn) => { progressFns.add(fn); return () => progressFns.delete(fn); },
     reset: async () => { map = {}; await store.localSet(KEY, map); },

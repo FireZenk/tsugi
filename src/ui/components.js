@@ -104,13 +104,19 @@ CRP.ui = (() => {
   }
 
   // Wide card for an episode (links straight to the player).
-  function episodeCard(e, { progress = 0, badge, sub, extra } = {}) {
+  // acts: [{ icon, title, run, cls }] small round buttons on hover (e.g. mark as watched)
+  function episodeCard(e, { progress = 0, badge, sub, extra, acts = [] } = {}) {
     const left = progress > 0 && e.durationMs ? minutes(e.durationMs * (1 - progress)) : null;
-    return h('a.card.ep', { href: M.episodeUrl(e), dataset: { sid: e.seriesId }, title: `${e.seriesTitle || ''} — ${e.title}` },
+    const buttons = acts.map((a) => h('button.act' + (a.cls ? '.' + a.cls : ''), {
+      title: a.title,
+      onclick: (ev) => { ev.preventDefault(); ev.stopPropagation(); a.run(ev); },
+    }, icon(a.icon, 16)));
+    return h('a.card.ep', { href: M.episodeUrl(e), dataset: { sid: e.seriesId, eid: e.id }, title: `${e.seriesTitle || ''} — ${e.title}` },
       h('div.art',
         img(e.thumb, e.title),
         h('span.playbtn', icon('play', 26)),
         badge ? h('span.badge', badge) : null,
+        buttons.length ? h('div.acts', buttons) : null,
         progress > 0 ? h('div.progress', h('i', { style: { width: clamp(progress * 100, 3, 100) + '%' } })) : null,
       ),
       h('div.title', e.seriesTitle || e.title),

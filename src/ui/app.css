@@ -457,3 +457,43 @@ table.diagt { width: 100%; border-collapse: collapse; margin-top: 8px; font-size
 table.diagt td { padding: 4px 6px; border-bottom: 1px solid var(--line); color: var(--muted); vertical-align: top; }
 table.diagt td:nth-child(2) { color: var(--text); font-weight: 700; white-space: nowrap; }
 table.diagt td:last-child { text-align: right; white-space: nowrap; }
+
+/* --------------------------------------------------------- watch order */
+.qvorder .mini { padding: 0 22px 8px; margin-top: -4px; font-size: 12px; }
+.orow { display: grid; grid-template-columns: 26px 1fr auto; gap: 10px; align-items: center; width: calc(100% - 44px); margin: 0 22px 4px; padding: 7px 10px; border-radius: 8px; background: var(--panel-2); text-align: left; font-size: 13px; }
+.orow.link:hover { background: var(--panel-3); }
+.onum { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 11.5px; font-weight: 800; }
+.onum.extra { background: var(--panel-3); color: var(--muted); }
+.otitle { min-width: 0; font-weight: 700; }
+.otitle small { display: block; font-weight: 500; color: var(--muted); font-size: 11.5px; }
+.otag { font-size: 11px; font-weight: 700; white-space: nowrap; }
+.otag.cr { color: var(--good); }
+.otag.here { color: var(--accent-2); }
+.otag.no { color: var(--faint); }
+.qvorder .linkbtn { margin: 4px 22px 0; font-size: 12.5px; }
+
+/* ----------------------------------------------------------- queue & clean-up */
+.qpos { display: inline-grid; place-items: center; width: 20px; height: 20px; margin-right: 8px; border-radius: 50%; background: var(--panel-3); color: var(--muted); font-size: 11px; font-weight: 800; }
+.slist.queue .srow:first-child .qpos { background: var(--accent); color: #fff; }
+.cleanrow { display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 10px 12px; border-radius: 12px; background: var(--panel); border: 1px solid var(--line); margin-bottom: 8px; }
+.cleanrow b { font-size: 13.5px; }
+.confirm { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--accent-2); font-weight: 700; }
+
+/* --------------------------------------------------------------- stars */
+.mystars { display: flex; align-items: center; gap: 2px; padding: 10px 22px 0; }
+.mystars .lbl { font-size: 12px; font-weight: 700; color: var(--muted); margin-right: 8px; }
+.mystars .star { color: var(--line); padding: 2px; border-radius: 4px; }
+.mystars .star.on { color: #ffc861; }
+.mystars:hover .star { color: #ffc861; }
+.mystars .star:hover ~ .star { color: var(--line); }
+.mystars small { margin-left: 8px; color: var(--faint); font-size: 11px; }
+
+/* ------------------------------------------------------------ moods & help */
+.moodrow { margin-top: 14px; display: flex; flex-direction: column; gap: 10px; align-items: flex-start; }
+.moodrow .row { width: 100%; }
+a.card:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: var(--radius); }
+.kbdhelp { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; background: rgba(0, 0, 0, .6); }
+.kbdbox { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 20px 24px; min-width: 320px; box-shadow: 0 30px 80px rgba(0, 0, 0, .6); }
+.kbdbox h3 { margin-bottom: 12px; font-size: 16px; }
+.hrow { display: flex; align-items: center; gap: 14px; padding: 5px 0; font-size: 13.5px; color: var(--muted); }
+.hrow kbd { min-width: 88px; text-align: center; font: 700 12px ui-monospace, monospace; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); }

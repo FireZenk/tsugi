@@ -68,7 +68,7 @@ CRP.recs = (() => {
     const titleOf = (id) => { const x = CRP.catalog.get(id); return x ? x.title : id; };
     const importSeeds = imported.filter((e) => e.s != null && e.s >= 75 && (e.st === 'completed' || e.st === 'watching'))
       .sort((a, b) => b.s - a.s).slice(0, 16)
-      .map((e) => ({ id: e.id, title: titleOf(e.id), w: 0, s: e.s, kind: 'import' }));
+      .map((e) => ({ id: e.id, title: titleOf(e.id), w: 0, s: e.s, stars: e.stars || null, kind: 'import' }));
     const importNeg = imported.filter((e) => (e.s != null && e.s <= 50) || e.st === 'dropped').slice(0, 16).map((e) => e.id);
     const negatives = [...store.hiddenList().slice(0, 20).map((x) => x.id), ...importNeg];
 
@@ -195,7 +195,7 @@ CRP.recs = (() => {
         series: x,
         score,
         main: by[0] ? by[0].id : null,
-        because: by.slice(0, 2).map((s) => ({ title: s.title, liked: s.kind === 'like', score: s.kind === 'import' ? s.s : null })),
+        because: by.slice(0, 2).map((s) => ({ title: s.title, liked: s.kind === 'like', score: s.kind === 'import' ? s.s : null, stars: s.stars || null })),
         moreSeeds: Math.max(0, by.length - 2),
         genres: x.genres.filter((g) => topGenres.includes(g)).slice(0, 2),
         traits,
@@ -229,7 +229,7 @@ CRP.recs = (() => {
     if (r.because.length) {
       const b0 = r.because[0];
       const names = r.because.map((b) => b.title).join(' y ');
-      const verb = b0.score != null ? `Porque le diste un ${Math.round(b0.score / 10)} a` : b0.liked ? 'Porque te gustó' : 'Porque viste';
+      const verb = b0.stars ? `Porque le diste ${b0.stars}★ a` : b0.score != null ? `Porque le diste un ${Math.round(b0.score / 10)} a` : b0.liked ? 'Porque te gustó' : 'Porque viste';
       parts.push(`${verb} ${names}${r.moreSeeds ? ` (+${r.moreSeeds})` : ''}`);
     } else if (r.genres.length) {
       parts.push(`Encaja con tu gusto por ${r.genres.map(M.genreTitle).join(' y ').toLowerCase()}`);

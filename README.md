@@ -60,6 +60,22 @@ series, reproductor e historial siguen siendo los de Crunchyroll.
 Ajustes (⚙): idioma de doblaje que te interesa, listas de 👍 y 👎, reindexar el catálogo,
 recalcular, ver el inicio original o desactivar.
 
+## Novedades 0.5
+
+- **Marcar como visto / quitar de "Sigue viendo"** desde las tarjetas de episodio, la propuesta de Hoy y la Agenda.
+  - "Marcar como visto" se guarda en Crunchyroll y tiene deshacer.
+  - "Quitar" solo oculta la entrada en CR+, hasta que haya un episodio más nuevo.
+- **Orden de visionado** en la ficha: historia principal numerada y extras (películas, OVAs) colocados por fecha. Indica qué está en Crunchyroll y lleva a esa parte.
+- **Tu cola**: ordena las series de tu lista que no has empezado; «¿Qué veo? → Maratón» empieza por arriba.
+- **Limpiar Mi lista**: quita en bloque las terminadas o las abandonadas, con confirmación y deshacer.
+- **Tus estrellas** en la ficha.
+  - Opcionalmente se envían también a Crunchyroll.
+  - Si ya habías valorado en Crunchyroll, se recupera.
+  - Pesan en las recomendaciones ("Porque le diste 5★ a…").
+- **¿Qué te apetece?** en Hoy: algo ligero, épico, para llorar, para pensar, misterio, romántico, relajante, tensión, otros mundos.
+- **Atajos de teclado**: `/` buscar · `1–4` pestañas · `J/K` moverse · `Enter`/`F` ficha · `L` lista · `?` ayuda.
+- **Tests**: `npm test` (node, sin dependencias).
+
 ## Novedades 0.4
 
 - **Temas, estudio y origen** (de AniList).
