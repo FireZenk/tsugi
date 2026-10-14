@@ -13,7 +13,10 @@
     const key = 'crp-dev:' + name;
     const read = () => JSON.parse(localStorage.getItem(key) || '{}');
     return {
-      async get(k) { const all = read(); if (k == null) return all; const o = {}; [].concat(k).forEach((x) => { if (x in all) o[x] = all[x]; }); return o; },
+      async get(k) {
+        // ?stall: settings never arrive (tests the start-up watchdog)
+        if (params.has('stall') && name === 'sync') return new Promise(() => {});
+        const all = read(); if (k == null) return all; const o = {}; [].concat(k).forEach((x) => { if (x in all) o[x] = all[x]; }); return o; },
       async set(o) { const all = { ...read(), ...o }; localStorage.setItem(key, JSON.stringify(all)); setTimeout(() => listeners.forEach((fn) => fn(Object.fromEntries(Object.keys(o).map((k) => [k, { newValue: o[k] }])), name))); },
       async remove(ks) { const all = read(); [].concat(ks).forEach((k) => delete all[k]); localStorage.setItem(key, JSON.stringify(all)); },
     };

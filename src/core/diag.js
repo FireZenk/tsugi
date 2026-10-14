@@ -74,6 +74,8 @@ CRP.diag = (() => {
         paused: CRP.saver.broken() ? { since: new Date(CRP.saver.since()).toISOString(), reason: CRP.saver.reason() } : null,
         hadAccount: CRP.saver.hadAccount(), tokenTemplate: await CRP.api.templateInfo().catch(() => null),
       },
+      startup: CRP.boot.trail,
+      lastStall: (() => { try { return localStorage.getItem('crp-last-stall'); } catch (e) { return null; } })(),
       auth: { ...state },
       catalog: cat ? { items: cat.items.length, ts: new Date(cat.ts).toISOString() } : null,
       anilist: CRP.ext ? CRP.ext.stats() : null,

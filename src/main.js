@@ -29,6 +29,7 @@
   if (wanted() && flag('crp-enabled') !== '0' && flag('crp-datasaver') !== '0' && !CRP.saver.broken() && !CRP.saver.skipThisLoad()) {
     window.stop();
     CRP.api.setPageless(true);
+    CRP.boot.step('pageless');
     if (!document.head) root.prepend(document.createElement('head'));
     document.title = 'Crunchyroll';
   }
@@ -41,7 +42,13 @@
 
   function activate() {
     root.classList.add('crp-on');
-    if (!app) app = CRP.app.mount();
+    if (app) return;
+    try {
+      app = CRP.app.mount();
+    } catch (e) {
+      console.error('[CR+] mount failed', e);
+      CRP.boot.step('mount failed: ' + (e && e.message));
+    }
   }
   function deactivate() {
     root.classList.remove('crp-on');
@@ -77,7 +84,24 @@
   // Hide the original page synchronously to avoid a flash of the old home.
   sync();
 
-  CRP.store.load().then((s) => { mirror(s); CRP.i18n.setLang(s.uiLang); ready = true; sync(); }, () => { ready = true; sync(); });
+  const loaded = (s) => {
+    CRP.boot.step('settings');
+    if (s) { mirror(s); CRP.i18n.setLang(s.uiLang); }
+    ready = true;
+    sync();
+  };
+  CRP.store.load().then(loaded, (e) => { console.warn('[CR+] settings failed', e); loaded(null); });
+
+  // Watchdog: CR+ must be on screen within 10 s. Otherwise never leave a black page:
+  // without the original page (data saver) load it as before; else show it.
+  setTimeout(() => {
+    if (!root.classList.contains('crp-on') || CRP.boot.visible) return;
+    console.warn('[CR+] not shown after 10 s; start-up trail:', CRP.boot.trail.join(' → '));
+    try { localStorage.setItem('crp-last-stall', new Date().toISOString() + ' ' + CRP.boot.trail.join(' → ')); } catch (e) { /* ignore */ }
+    if (CRP.api.isPageless() && CRP.saver.fail('stalled at ' + CRP.boot.last())) return;
+    bypassThisPage = true;
+    sync();
+  }, 10000);
 
   // Client-side navigations (Next.js pushState) don't reload the page.
   let last = location.href;

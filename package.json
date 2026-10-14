@@ -1,6 +1,6 @@
 {
   "name": "crunchyroll-plus",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "private": true,
   "description": "Chrome extension that turns the Crunchyroll home page into a tool to decide what to watch.",
   "scripts": {

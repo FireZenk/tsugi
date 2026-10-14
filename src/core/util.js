@@ -2,6 +2,13 @@
 // hangs off the CRP namespace.
 var CRP = globalThis.CRP || (globalThis.CRP = {});
 
+// Start-up trail: which step CR+ reached (shown on a stall and in the diagnostics report).
+CRP.boot = CRP.boot || {
+  t0: Date.now(), trail: [], visible: false,
+  step(name) { this.trail.push(`${name} +${Date.now() - this.t0}ms`); },
+  last() { return this.trail.length ? this.trail[this.trail.length - 1] : 'none'; },
+};
+
 CRP.util = (() => {
   // Site language prefixes (from the site's hreflang links) → content locale for the API.
   // English has no prefix. Checked against the API on 2026-10-13.

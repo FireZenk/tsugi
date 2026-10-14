@@ -19,7 +19,7 @@ function boot() {
     importScripts: (...files) => files.forEach((f) => vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'src', f), 'utf8'), sandbox)),
     chrome: {
       storage: { local: area('local'), sync: area('sync') },
-      runtime: { onInstalled: on('installed'), onStartup: on('startup'), onMessage: on('message') },
+      runtime: { onInstalled: on('installed'), onStartup: on('startup'), onMessage: on('message'), getURL: (p) => 'chrome-extension://test/' + p },
       alarms: { create() {}, onAlarm: on('alarm') },
       notifications: { create: (id, o) => notes.push({ id, title: o.title, message: o.message }), clear() {}, onClicked: on('click') },
       tabs: { create() {} },

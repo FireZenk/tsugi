@@ -481,14 +481,19 @@ CRP.app = (() => {
   // <link>/<style> elements we'd add to its DOM.
   let cssText = null;
   async function loadStyles(shadow) {
+    const link = () => shadow.prepend(h('link', { rel: 'stylesheet', href: chrome.runtime.getURL('src/ui/app.css') }));
     try {
-      if (cssText == null) cssText = await (await fetch(chrome.runtime.getURL('src/ui/app.css'))).text();
+      // never wait more than 3 s for our own stylesheet (the app stays hidden until then)
+      const timeout = new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 3000));
+      if (cssText == null) cssText = await Promise.race([fetch(chrome.runtime.getURL('src/ui/app.css')).then((r) => r.text()), timeout]);
       const sheet = new CSSStyleSheet();
       sheet.replaceSync(cssText);
       shadow.adoptedStyleSheets = [sheet];
+      CRP.boot.step('styles');
     } catch (e) {
       console.warn('[CR+] adoptedStyleSheets failed, falling back to <link>', e);
-      shadow.prepend(h('link', { rel: 'stylesheet', href: chrome.runtime.getURL('src/ui/app.css') }));
+      CRP.boot.step('styles-link (' + (e && e.message) + ')');
+      link();
     }
   }
 
@@ -518,7 +523,8 @@ CRP.app = (() => {
     const app = h('div.app', { style: { visibility: 'hidden' } });
     shadow.append(app);
     document.documentElement.append(host);
-    loadStyles(shadow).finally(() => { app.style.visibility = ''; });
+    CRP.boot.step('mount');
+    loadStyles(shadow).finally(() => { app.style.visibility = ''; CRP.boot.visible = true; });
 
     // React may re-render <html> children; keep our host attached.
     const keep = new MutationObserver(() => { if (!host.isConnected) document.documentElement.append(host); });
@@ -577,8 +583,11 @@ CRP.app = (() => {
       fill(main, ui.skeleton('ep', 4), ui.skeleton('poster', 8));
       let auth;
       try {
+        CRP.boot.step('session…');
         auth = await api.session();
+        CRP.boot.step(auth.anonymous ? 'session: anonymous' : 'session: account');
       } catch (e) {
+        CRP.boot.step('session failed: ' + ((e && e.message) || e));
         // The data saver stopped the original page and our own token requests failed:
         // load the page as before (the saver stays off for a while).
         if (api.isPageless() && CRP.saver.fail('error: ' + ((e && e.message) || e))) return;
@@ -654,6 +663,7 @@ CRP.app = (() => {
 
       const saved = store.get().tab;
       go(TABS.some((tab) => tab.id === saved) ? saved : 'today');
+      CRP.boot.step('view ' + current);
       if (current === 'search' && input.value) views.search.setText(input.value);
       host.focus({ preventScroll: true });
     };

@@ -147,14 +147,14 @@ async function notify(list) {
     const id = 'crp-many-' + Date.now();
     urls[id] = list[0].url.replace(/\/watch\/.*/, '/');
     chrome.notifications.create(id, {
-      type: 'list', iconUrl: 'icons/icon128.png', title: t('{n} episodios nuevos de lo que sigues', { n: list.length }), message: '',
+      type: 'list', iconUrl: chrome.runtime.getURL('icons/icon128.png'), title: t('{n} episodios nuevos de lo que sigues', { n: list.length }), message: '',
       items: list.slice(0, 5).map((x) => ({ title: x.title, message: x.line })), contextMessage: 'Crunchyroll+',
     });
   } else {
     for (const x of list) {
       const id = 'crp-' + x.id;
       urls[id] = x.url;
-      chrome.notifications.create(id, { type: 'basic', iconUrl: 'icons/icon128.png', title: t('Nuevo: {title}', { title: x.title }), message: x.line, contextMessage: 'Crunchyroll+' });
+      chrome.notifications.create(id, { type: 'basic', iconUrl: chrome.runtime.getURL('icons/icon128.png'), title: t('Nuevo: {title}', { title: x.title }), message: x.line, contextMessage: 'Crunchyroll+' });
     }
   }
   const keys = Object.keys(urls);
@@ -168,7 +168,7 @@ async function test() {
   urls['crp-test'] = CR + '/';
   await local.set({ 'notify:urls': urls });
   const message = `${t('Nuevo: {title}', { title: t('Los diarios de la boticaria') })} · ${epLine(3, 4)}${langSuffix('es-ES')}`;
-  chrome.notifications.create('crp-test', { type: 'basic', iconUrl: 'icons/icon128.png', title: t('Así se verán los avisos'), message, contextMessage: 'Crunchyroll+' });
+  chrome.notifications.create('crp-test', { type: 'basic', iconUrl: chrome.runtime.getURL('icons/icon128.png'), title: t('Así se verán los avisos'), message, contextMessage: 'Crunchyroll+' });
 }
 
 chrome.notifications.onClicked.addListener(async (id) => {
