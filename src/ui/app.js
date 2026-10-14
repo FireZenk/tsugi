@@ -125,11 +125,11 @@ CRP.app = (() => {
       // card badge: in your list / seen here / seen per your imported list (with your score)
       badge(x) {
         const mine = store.getRating(x.id);
-        if (mine) return `TU NOTA ${'★'.repeat(mine.stars)}`;
-        if (watchlistIds.has(x.id)) return 'EN TU LISTA';
-        if (stats.has(x.id)) return 'VISTA';
+        if (mine) return t('TU NOTA {n}', { n: '★'.repeat(mine.stars) });
+        if (watchlistIds.has(x.id)) return t('EN TU LISTA');
+        if (stats.has(x.id)) return t('VISTA');
         const imp = CRP.profile.get(x.id);
-        if (imp && imp.st !== 'planning') return imp.s != null ? `TU NOTA ${Math.round(imp.s / 10)}` : 'VISTA';
+        if (imp && imp.st !== 'planning') return imp.s != null ? t('TU NOTA {n}', { n: Math.round(imp.s / 10) }) : t('VISTA');
         return null;
       },
       inWatchlist: (id) => watchlistIds.has(id),
@@ -159,7 +159,7 @@ CRP.app = (() => {
           on ? watchlistIds.add(series.id) : watchlistIds.delete(series.id);
           root.querySelectorAll(`button.act.list[data-sid="${CSS.escape(series.id)}"]`).forEach((b) => {
             b.classList.toggle('on', on);
-            b.title = on ? 'Quitar de Mi lista' : 'Añadir a Mi lista';
+            b.title = on ? t('Quitar de Mi lista') : t('Añadir a Mi lista');
             b.replaceChildren(ui.icon(on ? 'check' : 'plus', 16));
           });
         };
@@ -171,11 +171,11 @@ CRP.app = (() => {
           if (list && !had && !list.some((w) => w.seriesId === series.id)) {
             list.unshift({ seriesId: series.id, title: series.title, series: CRP.catalog.get(series.id) || null, next: null, neverWatched: true });
           }
-          ui.toast(had ? `«${series.title}» quitada de Mi lista` : `«${series.title}» añadida a Mi lista`);
+          ui.toast(had ? t('«{title}» quitada de Mi lista', { title: series.title }) : t('«{title}» añadida a Mi lista', { title: series.title }));
           emit('watchlist');
         } catch (e) {
           apply(had);
-          ui.toast('No se pudo actualizar Mi lista. Inténtalo en la página de la serie.');
+          ui.toast(t('No se pudo actualizar Mi lista. Inténtalo en la página de la serie.'));
         }
       },
 
@@ -194,7 +194,7 @@ CRP.app = (() => {
         if (value && loggedIn && store.get().rateToCR !== false) {
           api.rateSeries(series.id, value).catch((e) => {
             CRP.diag.error('valorar en Crunchyroll', e);
-            ui.toast('Guardada en CR+, pero Crunchyroll no aceptó la valoración.');
+            ui.toast(t('Guardada en CR+, pero Crunchyroll no aceptó la valoración.'));
           });
         }
         const g = data.graph.now();
@@ -230,9 +230,9 @@ CRP.app = (() => {
         emit('watchlist');
         data.agenda.reset();
         emit('progress');
-        ui.toast(`${done.length} series quitadas de Mi lista`, {
+        ui.toast(t('{n} series quitadas de Mi lista', { n: done.length }), {
           action: {
-            label: 'Deshacer',
+            label: t('Deshacer'),
             run: async () => {
               for (const x of done) { try { await api.addToWatchlist(x.id); watchlistIds.add(x.id); } catch (e) { /* keep going */ } }
               emit('watchlist'); data.agenda.reset(); emit('progress');
@@ -248,13 +248,13 @@ CRP.app = (() => {
         try {
           await api.markWatched(ep.id);
         } catch (e) {
-          ui.toast('Crunchyroll no aceptó marcarlo como visto.');
+          ui.toast(t('Crunchyroll no aceptó marcarlo como visto.'));
           return false;
         }
         const refresh = () => { data.continue.reset(); data.history.reset(); data.agenda.reset(); store.cacheClear('ag:' + ep.seriesId); emit('progress'); };
         refresh();
-        ui.toast(`Visto: ${ep.seriesTitle || ''} ${M.epLabel(ep)}`, {
-          action: { label: 'Deshacer', run: async () => { await api.unmarkWatched(ep.id).catch(() => {}); refresh(); } },
+        ui.toast(t('Visto: {title} {ep}', { title: ep.seriesTitle || '', ep: M.epLabel(ep) }), {
+          action: { label: t('Deshacer'), run: async () => { await api.unmarkWatched(ep.id).catch(() => {}); refresh(); } },
         });
         return true;
       },
@@ -262,18 +262,18 @@ CRP.app = (() => {
       async hideContinue(ep) {
         await store.setContHidden(ep.seriesId, ep.id);
         emit('progress');
-        ui.toast(`«${ep.seriesTitle || ep.title}» quitada de Sigue viendo`, {
-          action: { label: 'Deshacer', run: async () => { await store.setContHidden(ep.seriesId, null); emit('progress'); } },
+        ui.toast(t('«{title}» quitada de Sigue viendo', { title: ep.seriesTitle || ep.title }), {
+          action: { label: t('Deshacer'), run: async () => { await store.setContHidden(ep.seriesId, null); emit('progress'); } },
         });
       },
 
       async like(series) {
         if (store.isLiked(series.id)) {
           await store.unlike(series.id);
-          ui.toast(`Quitado el me gusta de «${series.title}»`);
+          ui.toast(t('Quitado el me gusta de «{title}»', { title: series.title }));
         } else {
           await store.like(series.id, series.title);
-          ui.toast(`Anotado: más como «${series.title}»`);
+          ui.toast(t('Anotado: más como «{title}»', { title: series.title }));
         }
         root.querySelectorAll(`button.act.like[data-sid="${CSS.escape(series.id)}"]`).forEach((b) => b.classList.toggle('on', store.isLiked(series.id)));
         const g = data.graph.now();
@@ -286,8 +286,8 @@ CRP.app = (() => {
         const g = data.graph.now();
         if (g) await CRP.recs.extend(g, series.id);
         emit('taste');
-        ui.toast(`Vale, nada de «${series.title}» ni parecidas`, {
-          action: { label: 'Deshacer', run: async () => { await store.unhide(series.id); emit('taste'); } },
+        ui.toast(t('Vale, nada de «{title}» ni parecidas', { title: series.title }), {
+          action: { label: t('Deshacer'), run: async () => { await store.unhide(series.id); emit('taste'); } },
         });
       },
     };
@@ -318,7 +318,7 @@ CRP.app = (() => {
 
   // ---------------------------------------------------------------- settings
   function settingsDrawer(ctx, { onChange }) {
-    const drawer = h('aside.drawer', { hidden: true, tabindex: '-1', 'aria-label': 'Ajustes de Crunchyroll+' });
+    const drawer = h('aside.drawer', { hidden: true, tabindex: '-1', 'aria-label': t('Ajustes de Crunchyroll+') });
     const close = () => { drawer.hidden = true; };
     ctx.root.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !drawer.hidden) close(); });
     const render = () => {
@@ -326,49 +326,54 @@ CRP.app = (() => {
       const hidden = store.hiddenList();
       const liked = store.likedList();
       fill(drawer,
-        h('header', h('h3', 'Ajustes'), h('button.icon', { title: 'Cerrar', onclick: close }, ui.icon('x', 20))),
-        h('h4', 'Idioma de doblaje que te interesa'),
-        h('p.hint', 'Se usa en filtros, recomendaciones y fichas.'),
+        h('header', h('h3', t('Ajustes')), h('button.icon', { title: t('Cerrar'), onclick: close }, ui.icon('x', 20))),
+        h('h4', t('Idioma de la interfaz')),
         ui.select([
-          { id: 'auto', title: `Automático (${CRP.util.langName(CRP.util.defaultDub())})` },
+          { id: 'auto', title: t('Automático ({lang})', { lang: CRP.i18n.LANGS.find((l) => l.id === CRP.i18n.detect()).name }) },
+          ...CRP.i18n.LANGS.map((l) => ({ id: l.id, title: l.name })),
+        ], s.uiLang || 'auto', (v) => store.set({ uiLang: v }).then(() => { CRP.i18n.setLang(v); onChange(); }), t('Idioma de la interfaz')),
+        h('h4', t('Idioma de doblaje que te interesa')),
+        h('p.hint', t('Se usa en filtros, recomendaciones y fichas.')),
+        ui.select([
+          { id: 'auto', title: t('Automático ({lang})', { lang: CRP.util.langName(CRP.util.defaultDub()) }) },
           ...['es-ES', 'es-419', 'en-US', 'pt-BR', 'fr-FR', 'de-DE', 'it-IT', 'ar-SA', 'ru-RU', 'hi-IN', 'pl-PL', 'ko-KR', 'th-TH', 'id-ID', 'zh-TW']
             .map((id) => ({ id, title: CRP.util.langName(id) })),
-          { id: 'none', title: 'Ninguno (veo en V.O.)' },
-        ], s.dub, (v) => store.set({ dub: v }).then(onChange), 'Doblaje'),
-        h('h4', `No me interesa (${hidden.length})`),
+          { id: 'none', title: t('Ninguno (veo en V.O.)') },
+        ], s.dub, (v) => store.set({ dub: v }).then(onChange), t('Doblaje')),
+        h('h4', t('No me interesa ({n})', { n: hidden.length })),
         hidden.length
           ? h('ul.hiddenlist', hidden.slice(0, 60).map((x) => h('li', h('span', x.title || x.id),
-            h('button.btn.ghost.small', { onclick: async () => { await store.unhide(x.id); ctx.emit('taste'); render(); } }, 'Restaurar'))))
-          : h('p.hint', 'Usa 👎 en cualquier serie para que no vuelva a aparecer (ni sus parecidas).'),
-        h('h4', `Me gusta (${liked.length})`),
+            h('button.btn.ghost.small', { onclick: async () => { await store.unhide(x.id); ctx.emit('taste'); render(); } }, t('Restaurar')))))
+          : h('p.hint', t('Usa 👎 en cualquier serie para que no vuelva a aparecer (ni sus parecidas).')),
+        h('h4', t('Me gusta ({n})', { n: liked.length })),
         liked.length
           ? h('ul.hiddenlist', liked.slice(0, 60).map((x) => h('li', h('span', x.title || x.id),
-            h('button.btn.ghost.small', { onclick: async () => { await store.unlike(x.id); ctx.emit('taste'); render(); } }, 'Quitar'))))
-          : h('p.hint', 'Usa 👍 para que una serie cuente como referencia de tu gusto.'),
-        h('h4', 'Valoraciones externas'),
-        h('p.hint', 'Añade la nota de AniList (y la de MyAnimeList en la ficha). Solo se envían títulos de series, nada de tu cuenta.'),
-        ui.toggle('Usar AniList / MyAnimeList', s.ext !== false, (v) => store.set({ ext: v }).then(() => { if (v) startEnrichment(ctx); onChange(); })),
+            h('button.btn.ghost.small', { onclick: async () => { await store.unlike(x.id); ctx.emit('taste'); render(); } }, t('Quitar')))))
+          : h('p.hint', t('Usa 👍 para que una serie cuente como referencia de tu gusto.')),
+        h('h4', t('Valoraciones externas')),
+        h('p.hint', t('Añade la nota de AniList (y la de MyAnimeList en la ficha). Solo se envían títulos de series, nada de tu cuenta.')),
+        ui.toggle(t('Usar AniList / MyAnimeList'), s.ext !== false, (v) => store.set({ ext: v }).then(() => { if (v) startEnrichment(ctx); onChange(); })),
         (() => {
           const st = CRP.ext.stats();
           const line = h('p.hint', st.progress
-            ? `Consultando AniList: ${st.progress.done} de ${st.progress.total}…`
-            : `${st.matched} series con nota de AniList${st.missed ? ` · ${st.missed} sin coincidencia` : ''}.`);
+            ? t('Consultando AniList: {done} de {total}…', st.progress)
+            : t('{n} series con nota de AniList', { n: st.matched }) + (st.missed ? ' · ' + t('{n} sin coincidencia', { n: st.missed }) : '') + '.');
           return h('div', line, h('button.btn.ghost.small', {
-            onclick: async () => { await CRP.ext.reset(); startEnrichment(ctx); ui.toast('Consultando AniList de nuevo en segundo plano…'); render(); },
-          }, 'Volver a consultar AniList'));
+            onclick: async () => { await CRP.ext.reset(); startEnrichment(ctx); ui.toast(t('Consultando AniList de nuevo en segundo plano…')); render(); },
+          }, t('Volver a consultar AniList')));
         })(),
         profileSection(ctx, render, onChange),
         notifySection(ctx),
         diagSection(),
-        h('h4', 'Ahorro de datos'),
-        h('p.hint', 'En el inicio no se carga la página original de Crunchyroll (unos 4 MB de scripts, imágenes y rastreadores que quedarían ocultos detrás de CR+). Si alguna vez falla la sesión, desactívalo.'),
-        ui.toggle('Ahorrar datos en el inicio', s.dataSaver !== false, (v) => store.set({ dataSaver: v })),
-        h('h4', 'Datos'),
+        h('h4', t('Ahorro de datos')),
+        h('p.hint', t('En el inicio no se carga la página original de Crunchyroll (unos 4 MB de scripts, imágenes y rastreadores que quedarían ocultos detrás de CR+). Si alguna vez falla la sesión, desactívalo.')),
+        ui.toggle(t('Ahorrar datos en el inicio'), s.dataSaver !== false, (v) => store.set({ dataSaver: v })),
+        h('h4', t('Datos')),
         h('div.btns',
-          h('button.btn', { onclick: async () => { close(); ui.toast('Reindexando el catálogo…'); await CRP.catalog.refresh(); ui.toast('Catálogo actualizado'); } }, ui.icon('refresh', 16), 'Reindexar catálogo'),
-          h('button.btn.ghost', { onclick: async () => { await store.cacheClear('sim:'); await store.cacheClear('ag:'); close(); onChange(); } }, 'Recalcular recomendaciones y agenda'),
-          h('button.btn.ghost', { onclick: () => ctx.openOriginal() }, 'Ver inicio original (esta pestaña)'),
-          h('button.btn.ghost', { onclick: async () => { await store.set({ enabled: false }); } }, 'Desactivar Crunchyroll+'),
+          h('button.btn', { onclick: async () => { close(); ui.toast(t('Reindexando el catálogo…')); await CRP.catalog.refresh(); ui.toast(t('Catálogo actualizado')); } }, ui.icon('refresh', 16), t('Reindexar catálogo')),
+          h('button.btn.ghost', { onclick: async () => { await store.cacheClear('sim:'); await store.cacheClear('ag:'); close(); onChange(); } }, t('Recalcular recomendaciones y agenda')),
+          h('button.btn.ghost', { onclick: () => ctx.openOriginal() }, t('Ver inicio original (esta pestaña)')),
+          h('button.btn.ghost', { onclick: async () => { await store.set({ enabled: false }); } }, t('Desactivar Crunchyroll+')),
         ),
       );
     };
@@ -381,31 +386,31 @@ CRP.app = (() => {
     const s = store.get();
     const wrap = h('div.setsec');
     const status = h('p.hint');
-    const head = [h('h4', 'Tu perfil de AniList / MyAnimeList'),
-      h('p.hint', 'Importa tu lista pública: lo que ya viste (aunque no fuera en Crunchyroll) y tus notas, que pesan mucho en las recomendaciones.'),
-      ctx.loggedIn ? ui.toggle('Enviar mis estrellas (de la ficha) también a Crunchyroll', s.rateToCR !== false, (v) => store.set({ rateToCR: v })) : null];
+    const head = [h('h4', t('Tu perfil de AniList / MyAnimeList')),
+      h('p.hint', t('Importa tu lista pública: lo que ya viste (aunque no fuera en Crunchyroll) y tus notas, que pesan mucho en las recomendaciones.')),
+      ctx.loggedIn ? ui.toggle(t('Enviar mis estrellas (de la ficha) también a Crunchyroll'), s.rateToCR !== false, (v) => store.set({ rateToCR: v })) : null];
     if (sum) {
       const src = sum.source === 'mal' ? 'MyAnimeList' : 'AniList';
       fill(wrap, head,
-        h('p.ok', `${src} · ${sum.user}: ${sum.mapped} series emparejadas con Crunchyroll (de ${sum.total} en tu lista), ${sum.scored} con nota.`),
-        ui.toggle('Usar mi lista importada', s.useImport !== false, (v) => store.set({ useImport: v }).then(onChange)),
+        h('p.ok', `${src} · ${sum.user}: ` + t('{mapped} series emparejadas con Crunchyroll (de {total} en tu lista), {scored} con nota.', sum)),
+        ui.toggle(t('Usar mi lista importada'), s.useImport !== false, (v) => store.set({ useImport: v }).then(onChange)),
         h('div.btns.row',
-          h('button.btn.ghost.small', { onclick: () => run(sum.source, sum.user) }, ui.icon('refresh', 14), 'Actualizar'),
-          h('button.btn.ghost.small', { onclick: async () => { await CRP.profile.clear(); onChange(); render(); } }, 'Quitar importación')),
+          h('button.btn.ghost.small', { onclick: () => run(sum.source, sum.user) }, ui.icon('refresh', 14), t('Actualizar')),
+          h('button.btn.ghost.small', { onclick: async () => { await CRP.profile.clear(); onChange(); render(); } }, t('Quitar importación'))),
         status);
     } else {
-      const user = h('input.txt', { type: 'text', placeholder: 'Tu nombre de usuario', autocomplete: 'off', spellcheck: 'false' });
-      const src = ui.select([{ id: 'anilist', title: 'AniList' }, { id: 'mal', title: 'MyAnimeList' }], 'anilist', () => {}, 'Origen');
+      const user = h('input.txt', { type: 'text', placeholder: t('Tu nombre de usuario'), autocomplete: 'off', spellcheck: 'false' });
+      const src = ui.select([{ id: 'anilist', title: 'AniList' }, { id: 'mal', title: 'MyAnimeList' }], 'anilist', () => {}, t('Origen'));
       fill(wrap, head,
-        h('div.btns.row', src, user, h('button.btn.small', { onclick: () => run(src.value, user.value.trim()) }, 'Importar')),
+        h('div.btns.row', src, user, h('button.btn.small', { onclick: () => run(src.value, user.value.trim()) }, t('Importar'))),
         status);
     }
     async function run(source, user) {
-      if (!user) { status.textContent = 'Escribe tu nombre de usuario.'; return; }
+      if (!user) { status.textContent = t('Escribe tu nombre de usuario.'); return; }
       try {
-        const step = (t) => { status.textContent = t; };
+        const step = (msg) => { status.textContent = msg; };
         const r = source === 'mal' ? await CRP.profile.importMal(user, step) : await CRP.profile.importAniList(user, step);
-        ui.toast(`Importadas ${r.mapped} series de ${source === 'mal' ? 'MyAnimeList' : 'AniList'}`);
+        ui.toast(t('Importadas {n} series de {src}', { n: r.mapped, src: source === 'mal' ? 'MyAnimeList' : 'AniList' }));
         onChange();
         render();
       } catch (e) {
@@ -423,21 +428,21 @@ CRP.app = (() => {
     const showStatus = async () => {
       const { 'notify:status': st, 'notify:watch': w } = await chrome.storage.local.get(['notify:status', 'notify:watch']);
       const n = w && w.items ? w.items.length : 0;
-      if (!st) { status.textContent = `Siguiendo ${n} series. Primera comprobación en unos minutos.`; return; }
+      if (!st) { status.textContent = t('Siguiendo {n} series. Primera comprobación en unos minutos.', { n }); return; }
       const when = CRP.util.timeAgo(new Date(st.ts).toISOString());
-      status.textContent = st.skipped ? `No se comprueba: ${st.reason}.`
-        : st.ok ? `Siguiendo ${n} series · última comprobación ${when}${st.found ? ` · ${st.found} avisos` : ''}.`
-          : `Crunchyroll no respondió desde segundo plano (${st.error}); uso los horarios de AniList · ${when}.`;
+      status.textContent = st.skipped ? t('No se comprueba: {reason}.', { reason: t(st.reason) })
+        : st.ok ? t('Siguiendo {n} series · última comprobación {when}', { n, when }) + (st.found ? ' · ' + t('{n} avisos', { n: st.found }) : '') + '.'
+          : t('Crunchyroll no respondió desde segundo plano ({error}); uso los horarios de AniList · {when}.', { error: st.error, when });
     };
     showStatus();
     return h('div.setsec',
-      h('h4', 'Avisos de estreno'),
-      h('p.hint', 'Un aviso de Chrome cuando sale un episodio de lo que sigues, en el idioma en que lo ves. Funciona aunque no tengas Crunchyroll abierto.'),
-      ui.toggle('Avisarme de estrenos', s.notify !== false, (v) => store.set({ notify: v }).then(showStatus)),
+      h('h4', t('Avisos de estreno')),
+      h('p.hint', t('Un aviso de Chrome cuando sale un episodio de lo que sigues, en el idioma en que lo ves. Funciona aunque no tengas Crunchyroll abierto.')),
+      ui.toggle(t('Avisarme de estrenos'), s.notify !== false, (v) => store.set({ notify: v }).then(showStatus)),
       status,
       h('div.btns.row',
-        h('button.btn.ghost.small', { onclick: () => chrome.runtime.sendMessage({ type: 'notify-test' }) }, 'Probar aviso'),
-        h('button.btn.ghost.small', { onclick: async () => { status.textContent = 'Comprobando…'; await chrome.runtime.sendMessage({ type: 'notify-poll' }); showStatus(); } }, 'Comprobar ahora')));
+        h('button.btn.ghost.small', { onclick: () => chrome.runtime.sendMessage({ type: 'notify-test' }) }, t('Probar aviso')),
+        h('button.btn.ghost.small', { onclick: async () => { status.textContent = t('Comprobando…'); await chrome.runtime.sendMessage({ type: 'notify-poll' }); showStatus(); } }, t('Comprobar ahora'))));
   }
 
   // Diagnostics: probe endpoints, copy a report.
@@ -447,24 +452,24 @@ CRP.app = (() => {
     const a = CRP.diag.state;
     const errs = CRP.diag.errors();
     return h('div.setsec',
-      h('h4', 'Diagnóstico'),
-      h('p.hint', `Sesión: ${a.anonymous == null ? '—' : a.anonymous ? 'sin cuenta' : 'con cuenta'} · token ${a.tokenSource || '—'} · cuenta ${a.accountId || '—'} · perfil ${a.profileId || '—'}`),
-      h('p.hint', errs.length ? `${errs.length} errores recientes (el último: ${errs[0].where} → ${errs[0].msg})` : 'Sin errores recientes.'),
+      h('h4', t('Diagnóstico')),
+      h('p.hint', t('Sesión: {s} · token {src} · cuenta {acc} · perfil {prof}', { s: a.anonymous == null ? '—' : a.anonymous ? t('sin cuenta') : t('con cuenta'), src: a.tokenSource ? t(a.tokenSource) : '—', acc: a.accountId || '—', prof: a.profileId || '—' })),
+      h('p.hint', errs.length ? t('{n} errores recientes (el último: {where} → {msg})', { n: errs.length, where: errs[0].where, msg: errs[0].msg }) : t('Sin errores recientes.')),
       h('div.btns.row',
         h('button.btn.ghost.small', {
           onclick: async () => {
-            fill(out, h('p.hint', 'Probando…'));
+            fill(out, h('p.hint', t('Probando…')));
             probes = await CRP.diag.probe();
-            fill(out, h('table.diagt', probes.map((p) => h('tr', h('td', p.ok ? '✅' : '❌'), h('td', p.name), h('td', p.note), h('td', `${p.ms} ms`)))));
+            fill(out, h('table.diagt', probes.map((p) => h('tr', h('td', p.ok ? '✅' : '❌'), h('td', t(p.name)), h('td', p.note), h('td', `${p.ms} ms`)))));
           },
-        }, 'Probar conexión'),
+        }, t('Probar conexión')),
         h('button.btn.ghost.small', {
           onclick: async (e) => {
             const report = await CRP.diag.report(probes);
             await navigator.clipboard.writeText(JSON.stringify(report, null, 2));
-            e.target.textContent = 'Informe copiado ✓';
+            e.target.textContent = t('Informe copiado ✓');
           },
-        }, 'Copiar informe')),
+        }, t('Copiar informe'))),
       out);
   }
 
@@ -526,10 +531,12 @@ CRP.app = (() => {
 
     const prefix = CRP.util.localePrefix();
     const tabsNav = h('nav.tabs');
-    const input = h('input.q', {
-      type: 'search', autocomplete: 'off', spellcheck: 'false', 'aria-label': 'Buscar',
-      placeholder: 'Busca o describe: “corta, en castellano, como Frieren”',
-    });
+    const input = h('input.q', { type: 'search', autocomplete: 'off', spellcheck: 'false' });
+    const labelInput = () => {
+      input.setAttribute('aria-label', t('Buscar'));
+      input.placeholder = t('Busca o describe: “{example}”', { example: t('corta, en castellano, como Frieren') });
+    };
+    labelInput();
     const searchWrap = h('div.qbox', ui.icon('search', 18), input, h('kbd', '/'));
     const headerRight = h('div.hright');
     const header = h('header.top',
@@ -587,6 +594,7 @@ CRP.app = (() => {
       }
       main.replaceChildren();
       views = {};
+      labelInput();   // the UI language may have changed
       ctx = createCtx(shadow, auth);
       await Promise.race([Promise.all([ctx.data.categories().catch(() => {}), CRP.ext.load()]), new Promise((r) => setTimeout(r, 1500))]);
       await CRP.profile.load().catch(() => {});
@@ -597,7 +605,7 @@ CRP.app = (() => {
       const drawerQV = CRP.drawer.create(ctx);
       ctx.openSeries = (s, opts) => drawerQV.open(s, opts);
       ctx.go = (tab) => go(tab);
-      ctx.setQueryText = (t) => { input.value = t; };
+      ctx.setQueryText = (s) => { input.value = s; };
       ctx.search = (patch) => {
         go('search');
         if (patch.text != null) input.value = patch.text;
@@ -608,20 +616,20 @@ CRP.app = (() => {
       app.querySelectorAll('aside.drawer, aside.qv, div.scrim').forEach((x) => x.remove());
       app.append(drawerQV.scrim, drawerQV.panel, settings.el);
 
-      fill(tabsNav, TABS.map((t) => h('button', { dataset: { tab: t.id }, onclick: () => go(t.id) }, ui.icon(t.icon, 17), h('span', t.title))));
-      fill(headerRight, h('button.icon.big', { title: 'Ajustes', onclick: () => settings.open() }, ui.icon('gear', 20)));
+      fill(tabsNav, TABS.map((tab) => h('button', { dataset: { tab: tab.id }, onclick: () => go(tab.id) }, ui.icon(tab.icon, 17), h('span', t(tab.title)))));
+      fill(headerRight, h('button.icon.big', { title: t('Ajustes'), onclick: () => settings.open() }, ui.icon('gear', 20)));
       if (!ctx.loggedIn) {
         main.append(h('div.signin',
-          h('div', h('strong', 'No has iniciado sesión.'), ' Entra para tener agenda, pendientes y recomendaciones hechas con tu historial.'),
-          h('button.btn', { onclick: () => ctx.openOriginal() }, 'Iniciar sesión')));
+          h('div', h('strong', t('No has iniciado sesión.')), ' ' + t('Entra para tener agenda, pendientes y recomendaciones hechas con tu historial.')),
+          h('button.btn', { onclick: () => ctx.openOriginal() }, t('Iniciar sesión'))));
       }
 
       // Keyboard: / search · 1–4 tabs · J/K move between cards · Enter/F quick view ·
       // L add/remove from list · ? help. Ignored while typing.
       const onKey = (e) => {
         if (e.ctrlKey || e.metaKey || e.altKey) return;
-        const t = e.composedPath()[0];
-        if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable)) return;
+        const target = e.composedPath()[0];
+        if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable)) return;
         const handled = () => { e.preventDefault(); e.stopPropagation(); };
         if (e.key === '/') { handled(); input.focus(); input.select(); return; }
         if (/^[1-4]$/.test(e.key)) { handled(); go(TABS[+e.key - 1].id); return; }
@@ -644,7 +652,7 @@ CRP.app = (() => {
       offKey = () => window.removeEventListener('keydown', onKey, true);
 
       const saved = store.get().tab;
-      go(TABS.some((t) => t.id === saved) ? saved : 'today');
+      go(TABS.some((tab) => tab.id === saved) ? saved : 'today');
       if (current === 'search' && input.value) views.search.setText(input.value);
       host.focus({ preventScroll: true });
     };
@@ -655,9 +663,9 @@ CRP.app = (() => {
       const row = (k, d) => h('div.hrow', h('kbd', k), h('span', d));
       help = h('div.kbdhelp', { onclick: () => toggleHelp() },
         h('div.kbdbox',
-          h('h3', 'Atajos de teclado'),
-          row('/', 'Buscar'), row('1 – 4', 'Hoy · Buscar · Para ti · Agenda'), row('J / K', 'Siguiente / anterior serie'),
-          row('Enter o F', 'Abrir la ficha'), row('L', 'Añadir o quitar de Mi lista'), row('Esc', 'Cerrar ficha / ajustes'), row('?', 'Esta ayuda')));
+          h('h3', t('Atajos de teclado')),
+          row('/', t('Buscar')), row('1 – 4', TABS.map((tab) => t(tab.title)).join(' · ')), row('J / K', t('Siguiente / anterior serie')),
+          row(t('Enter o F'), t('Abrir la ficha')), row('L', t('Añadir o quitar de Mi lista')), row('Esc', t('Cerrar ficha / ajustes')), row('?', t('Esta ayuda'))));
       app.append(help);
     }
     const cleanup = [() => offKey && offKey()];

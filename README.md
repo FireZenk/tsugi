@@ -60,6 +60,15 @@ series, reproductor e historial siguen siendo los de Crunchyroll.
 Ajustes (⚙): idioma de doblaje que te interesa, listas de 👍 y 👎, reindexar el catálogo,
 recalcular, ver el inicio original o desactivar.
 
+## Novedades 0.6
+
+- **Seis idiomas**: castellano, español latino, inglés, italiano, alemán y francés.
+  - Por defecto, el del prefijo de idioma de la web (`/es-es/`, `/es/`, `/it/`, `/de/`, `/fr/`; el resto, inglés). Se puede fijar en Ajustes → *Idioma de la interfaz*.
+  - Traduce toda la interfaz, el popup y los avisos de estreno; fechas y días de la semana con el formato del idioma.
+  - El buscador entiende castellano e inglés siempre, más el idioma de la interfaz: `kurz, synchronisiert, ohne Romantik`, `courte, en VF, sans harem`, `corta, doppiata, come Frieren`.
+  - Las búsquedas de un clic, los planes de «¿Qué te apetece?» y los ejemplos están escritos en cada idioma (los tests comprueban que dan los mismos filtros que en castellano).
+- **Ahorro de datos** (activado por defecto): en el inicio no se carga la página original de Crunchyroll, que quedaba oculta detrás de CR+ (~4 MB de scripts, imágenes y rastreadores). CR+ renueva la sesión por su cuenta; si no la encuentra, carga el original una sola vez para capturarla. Se puede desactivar en Ajustes.
+
 ## Novedades 0.5
 
 - **Marcar como visto / quitar de "Sigue viendo"** desde las tarjetas de episodio, la propuesta de Hoy y la Agenda.
@@ -131,12 +140,13 @@ Tras cambiar código: botón ↻ de la extensión en `chrome://extensions` y rec
 | `src/core/api.js` | Cliente de la API web (`/content/v2/...`). Renueva el token igual que la web (`etp_rt_cookie`) y sin sesión usa uno anónimo. |
 | `src/core/catalog.js` | Índice local del catálogo (browse por popularidad + etiquetas de temporada) y motor de filtros/recuentos/orden. |
 | `src/core/external.js` | Notas de AniList (lotes GraphQL, 4 pases de búsqueda, emparejado por enlace a Crunchyroll) y MyAnimeList (Jikan); calidad combinada. |
-| `src/core/tags.js` | Temas de AniList con etiqueta en castellano y sinónimos, origen y estudios para el intérprete. |
+| `src/core/tags.js` | Temas de AniList con etiqueta traducida y sinónimos, origen y estudios para el intérprete. |
 | `src/core/finder.js` | Motor de búsqueda común (vista Buscar y estanterías). |
 | `src/core/profile.js` | Importación de listas públicas de AniList / MyAnimeList. |
 | `src/core/diag.js` | Errores recientes, pruebas de conexión e informe. |
 | `src/bg.js` | Proceso en segundo plano: avisos de estreno y lectura de listas de MAL. |
-| `src/core/query.js` | Intérprete de frases en castellano → filtros y chips. |
+| `src/core/query.js` | Intérprete de frases (castellano, inglés y el idioma de la interfaz) → filtros y chips. |
+| `src/core/i18n.js`, `src/i18n/` | Traducciones: la clave es el texto en castellano (`t('Mi lista')`); un diccionario por idioma, `es-419` solo con lo que cambia. |
 | `src/core/recs.js` | `prepare()`: semillas del historial + 👍, y `similar_to` de cada una (en caché 7 días). `rank()`: puntuación instantánea con los mandos, 👎, afinidad de género, nota bayesiana y diversidad. |
 | `src/core/agenda.js` | Temporadas y episodios de lo que sigues → pendientes, horas, calendario semanal, abandonadas. |
 | `src/ui/` | Shadow DOM con estilos vía `adoptedStyleSheets`; vistas en `src/ui/views/`; ficha en `drawer.js`. |
@@ -153,4 +163,4 @@ simulados (catálogo sintético con temporadas, episodios semanales, idiomas y n
 python3 dev/serve.py
 ```
 
-Abre http://127.0.0.1:8777/dev/harness.html (añade `?anon` para simular que no hay sesión).
+Abre http://127.0.0.1:8777/dev/harness.html (añade `?anon` para simular que no hay sesión, `?site=en|es-419|it|de|fr` para otro idioma de la web).

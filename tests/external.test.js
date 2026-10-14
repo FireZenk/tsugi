@@ -6,7 +6,7 @@ const { load } = require('./env');
 const plain = (v) => JSON.parse(JSON.stringify(v));
 const eq = (a, b, msg) => assert.deepStrictEqual(plain(a), plain(b), msg);
 
-const { CRP } = load(['src/core/util.js', 'src/core/model.js', 'src/core/store.js', 'src/core/api.js', 'src/core/external.js']);
+const { CRP } = load(['src/core/util.js', 'src/core/i18n.js', 'src/core/model.js', 'src/core/store.js', 'src/core/api.js', 'src/core/external.js']);
 const { pick, linksTo } = CRP.ext._test;
 const x = { id: 'G3KHEVDJ7', slug: 'the-apothecary-diaries', title: 'Los diarios de la boticaria', year: 2023, kind: 'series' };
 const m = (o) => ({ id: 1, idMal: 10, title: { english: 'X', romaji: 'X' }, synonyms: [], averageScore: 80, popularity: 1000, startDate: { year: 2023 }, format: 'TV', externalLinks: [], ...o });

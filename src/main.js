@@ -58,7 +58,7 @@
       pill.id = 'crp-pill';
       const shadow = pill.attachShadow({ mode: 'open' });
       const b = document.createElement('button');
-      b.textContent = 'Volver a Crunchyroll+';
+      b.textContent = t('Volver a Crunchyroll+');
       b.style.cssText = 'all:initial;font:600 13px system-ui,sans-serif;color:#fff;background:#f47521;padding:10px 16px;border-radius:999px;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,.4)';
       b.addEventListener('click', () => { bypassThisPage = false; pill.remove(); pill = null; sync(); });
       shadow.append(b);
@@ -79,7 +79,7 @@
   // Hide the original page synchronously to avoid a flash of the old home.
   sync();
 
-  CRP.store.load().then((s) => { mirror(s); ready = true; sync(); }, () => { ready = true; sync(); });
+  CRP.store.load().then((s) => { mirror(s); CRP.i18n.setLang(s.uiLang); ready = true; sync(); }, () => { ready = true; sync(); });
 
   // Client-side navigations (Next.js pushState) don't reload the page.
   let last = location.href;
@@ -91,7 +91,7 @@
   // Enabled/disabled from the popup, the settings drawer or another tab. Other
   // settings are re-rendered by the drawer itself.
   chrome.storage.onChanged.addListener((changes, area) => {
-    if (area === 'sync' && changes.settings) CRP.store.load().then((s) => { mirror(s); sync(); });
+    if (area === 'sync' && changes.settings) CRP.store.load().then((s) => { mirror(s); CRP.i18n.setLang(s.uiLang); sync(); });
   });
 
   // The site's own scripts may rewrite <html class>; keep ours while active.

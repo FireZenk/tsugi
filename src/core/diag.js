@@ -38,23 +38,23 @@ CRP.diag = (() => {
       }
     };
     const s = await api.session().catch(() => null);
-    await run('Sesión', async () => (s ? (s.anonymous ? 'anónima (sin cuenta)' : 'con cuenta') : 'sin token'));
+    await run('Sesión', async () => (s ? (s.anonymous ? t('anónima (sin cuenta)') : t('con cuenta')) : t('sin token')));
     if (s && !s.anonymous) {
-      await run('Historial', async () => `${(await api.watchHistory(1, 5)).length} entradas`);
-      await run('Seguir viendo', async () => `${(await api.continueWatching(3)).length} entradas`);
-      await run('Mi lista', async () => `${(await api.watchlist(5)).length} entradas`);
+      await run('Historial', async () => t('{n} entradas', { n: (await api.watchHistory(1, 5)).length }));
+      await run('Seguir viendo', async () => t('{n} entradas', { n: (await api.continueWatching(3)).length }));
+      await run('Mi lista', async () => t('{n} entradas', { n: (await api.watchlist(5)).length }));
     }
-    await run('Catálogo (browse)', async () => `${((await api.browse({ n: 1 })).total) || '?'} títulos`);
+    await run('Catálogo (browse)', async () => t('{n} títulos', { n: ((await api.browse({ n: 1 })).total) || '?' }));
     await run('Temporadas / episodios', async () => {
       const b = (await api.browse({ n: 1, sort_by: 'popularity' })).data[0];
       const seasons = await api.seasons(b.id);
       const eps = seasons.length ? await api.episodes(seasons[0].id) : [];
-      return `${seasons.length} temp. · ${eps.length} ep`;
+      return t('{s} temp. · {e} ep', { s: seasons.length, e: eps.length });
     });
     await run('AniList', async () => {
       const r = await fetch('https://graphql.anilist.co', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ query: '{ Media(id: 21) { id } }' }) });
       if (!r.ok) throw Object.assign(new Error('HTTP ' + r.status), { status: r.status });
-      return `quedan ${r.headers.get('x-ratelimit-remaining')} peticiones/min`;
+      return t('quedan {n} peticiones/min', { n: r.headers.get('x-ratelimit-remaining') });
     });
     return out;
   }

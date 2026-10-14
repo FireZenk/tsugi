@@ -112,15 +112,20 @@ CRP.util = (() => {
     return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); };
   }
 
+  // translated through CRP.i18n (loaded after util; only called at render time)
+  const tr = (k, v) => (globalThis.CRP && CRP.i18n ? CRP.i18n.t(k, v) : k.replace(/\{(\w+)\}/g, (m, x) => (v && v[x] != null ? v[x] : m)));
+
   function timeAgo(iso) {
     if (!iso) return '';
     const s = (Date.now() - new Date(iso).getTime()) / 1000;
-    if (s < 3600) return `hace ${Math.max(1, Math.round(s / 60))} min`;
-    if (s < 86400) return `hace ${Math.round(s / 3600)} h`;
+    if (s < 3600) return tr('hace {n} min', { n: Math.max(1, Math.round(s / 60)) });
+    if (s < 86400) return tr('hace {n} h', { n: Math.round(s / 3600) });
     const d = Math.round(s / 86400);
-    if (d < 30) return `hace ${d} d`;
+    if (d < 30) return tr('hace {n} d', { n: d });
     const mo = Math.round(d / 30);
-    return mo < 12 ? `hace ${mo} mes${mo > 1 ? 'es' : ''}` : `hace ${Math.round(mo / 12)} año${mo >= 24 ? 's' : ''}`;
+    if (mo < 12) return mo > 1 ? tr('hace {n} meses', { n: mo }) : tr('hace 1 mes');
+    const y = Math.round(mo / 12);
+    return y > 1 ? tr('hace {n} años', { n: y }) : tr('hace 1 año');
   }
 
   function minutes(ms) { return Math.max(1, Math.round(ms / 60000)); }
@@ -168,7 +173,13 @@ CRP.util = (() => {
     'hi-IN': 'Hindi', 'pl-PL': 'Polaco', 'ko-KR': 'Coreano', 'zh-CN': 'Chino', 'zh-TW': 'Chino (TW)', 'th-TH': 'Tailandés',
     'id-ID': 'Indonesio', 'ms-MY': 'Malayo', 'vi-VN': 'Vietnamita', 'ta-IN': 'Tamil', 'te-IN': 'Telugu', 'ca-ES': 'Catalán', 'tr-TR': 'Turco',
   };
-  const langName = (code) => LANGS[code] || code;
+  const langName = (code) => (LANGS[code] ? tr(LANGS[code]) : code);
+  // inside a sentence: lowercase in Spanish, Italian and French ("audio castellano"),
+  // capitalised in English and German ("Audio Spanish", "Audio Spanisch")
+  const langLower = (code) => {
+    const n = langName(code);
+    return globalThis.CRP && CRP.i18n && ['en', 'de'].includes(CRP.i18n.current()) ? n : n.charAt(0).toLowerCase() + n.slice(1);
+  };
 
   // Dub language that matters for this user, from the site locale.
   function defaultDub() {
@@ -184,13 +195,18 @@ CRP.util = (() => {
     x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
     return x;
   }
-  const DAYS = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
-  const DAYS_LONG = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado'];
-  const fmtTime = (d) => d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
+  // day names in the UI language (Intl); index 0 = Sunday, like Date#getDay
+  const uiLocale = () => (globalThis.CRP && CRP.i18n ? CRP.i18n.locale() : 'es-ES');
+  const dayNames = (style) => Array.from({ length: 7 }, (_, i) => new Date(2024, 0, 7 + i).toLocaleDateString(uiLocale(), { weekday: style }).replace('.', ''));
+  const DAYS = new Proxy([], { get: (_, k) => (k === 'length' ? 7 : dayNames('short')[k]) });
+  const DAYS_LONG = new Proxy([], { get: (_, k) => (k === 'length' ? 7 : dayNames('long')[k]) });
+  const fmtTime = (d) => d.toLocaleTimeString(uiLocale(), { hour: '2-digit', minute: '2-digit' });
+  const fmtDateTime = (d, opts) => new Date(d).toLocaleString(uiLocale(), opts);
+  const fmtNum = (n) => Number(n).toLocaleString(uiLocale());
   const sameDay = (a, b) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 
   return {
     localePrefix, contentLocale, isHomePath, cookie, h, append, fill, svg, pickImage, debounce, timeAgo, minutes,
-    scoreRating, uniqBy, pool, norm, clamp, fmtMinutes, LANGS, langName, defaultDub, weekStart, DAYS, DAYS_LONG, fmtTime, sameDay,
+    scoreRating, uniqBy, pool, norm, clamp, fmtMinutes, LANGS, langName, langLower, defaultDub, weekStart, DAYS, DAYS_LONG, fmtTime, fmtDateTime, fmtNum, uiLocale, sameDay,
   };
 })();

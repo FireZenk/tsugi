@@ -7,7 +7,7 @@ var CRP = globalThis.CRP || (globalThis.CRP = {});
 CRP.views = CRP.views || {};
 
 CRP.views.search = (ctx) => {
-  const { h, fill, langName, debounce } = CRP.util;
+  const { h, fill, langName, debounce, fmtNum } = CRP.util;
   const M = CRP.model;
   const ui = CRP.ui;
   const cat = CRP.catalog;
@@ -70,8 +70,8 @@ CRP.views.search = (ctx) => {
     const studios = new Map();
     const sources = new Map();
     for (const x of base) {
-      const t = CRP.ext.themes(x.id);
-      if (t) for (const n of t) themes.set(n, (themes.get(n) || 0) + 1);
+      const th = CRP.ext.themes(x.id);
+      if (th) for (const n of th) themes.set(n, (themes.get(n) || 0) + 1);
       for (const st of CRP.ext.studios(x.id)) studios.set(st, (studios.get(st) || 0) + 1);
       const src = CRP.ext.source(x.id);
       if (src) sources.set(src, (sources.get(src) || 0) + 1);
@@ -89,28 +89,28 @@ CRP.views.search = (ctx) => {
 
     const groups = [];
     if (ctx.loggedIn || CRP.profile.active()) {
-      groups.push(radioGroup('Para mí', 'mine', [
-        { id: 'any', title: 'Todo' },
-        { id: 'unseen', title: 'Sin ver', value: 'unseen', patch: { mine: 'unseen' }, active: (f) => f.mine === 'unseen' },
-        { id: 'watchlist', title: 'En mi lista', value: 'watchlist', patch: { mine: 'watchlist' }, active: (f) => f.mine === 'watchlist' },
-        { id: 'progress', title: 'Empezadas', value: 'progress', patch: { mine: 'progress' }, active: (f) => f.mine === 'progress' },
-        { id: 'seen', title: 'Ya vistas', value: 'seen', patch: { mine: 'seen' }, active: (f) => f.mine === 'seen' },
+      groups.push(radioGroup(t('Para mí'), 'mine', [
+        { id: 'any', title: t('Todo') },
+        { id: 'unseen', title: t('Sin ver'), value: 'unseen', patch: { mine: 'unseen' }, active: (f) => f.mine === 'unseen' },
+        { id: 'watchlist', title: t('En mi lista'), value: 'watchlist', patch: { mine: 'watchlist' }, active: (f) => f.mine === 'watchlist' },
+        { id: 'progress', title: t('Empezadas'), value: 'progress', patch: { mine: 'progress' }, active: (f) => f.mine === 'progress' },
+        { id: 'seen', title: t('Ya vistas'), value: 'seen', patch: { mine: 'seen' }, active: (f) => f.mine === 'seen' },
       ], F));
     }
-    groups.push(h('div.fgroup', h('h4', 'Audio'), h('div.fopts', audios.map((a) => {
+    groups.push(h('div.fgroup', h('h4', t('Audio')), h('div.fopts', audios.map((a) => {
       const on = F.audio.includes(a);
       return h('button.fopt.check' + (on ? '.on' : '') + (!on && audioCounts[a] === 0 ? '.dim' : ''), {
         onclick: () => setFacet('audio', on ? F.audio.filter((x) => x !== a) : [...F.audio, a]),
       }, h('span', langName(a) + (a === dub ? ' ★' : '')), h('small', audioCounts[a]));
     }))));
-    groups.push(radioGroup('Duración', 'len', [
-      { id: 'any', title: 'Cualquiera' },
-      { id: 'movie', title: 'Película', value: 'movie', patch: { len: 'movie' }, active: (f) => f.len === 'movie' },
-      { id: 'short', title: 'Corta · ≤ 13 ep', value: 'short', patch: { len: 'short' }, active: (f) => f.len === 'short' },
-      { id: 'mid', title: 'Media · 14–26 ep', value: 'mid', patch: { len: 'mid' }, active: (f) => f.len === 'mid' },
-      { id: 'long', title: 'Larga · 27–75 ep', value: 'long', patch: { len: 'long' }, active: (f) => f.len === 'long' },
-      { id: 'huge', title: 'Muy larga · 75+', value: 'huge', patch: { len: 'huge' }, active: (f) => f.len === 'huge' },
-    ].concat(F.epsMin != null || F.epsMax != null ? [{ id: 'custom', title: `${F.epsMin || 1}–${F.epsMax || '∞'} ep (texto)`, patch: { epsMin: F.epsMin, epsMax: F.epsMax }, active: () => true }] : []), F));
+    groups.push(radioGroup(t('Duración'), 'len', [
+      { id: 'any', title: t('Cualquiera') },
+      { id: 'movie', title: t('Película'), value: 'movie', patch: { len: 'movie' }, active: (f) => f.len === 'movie' },
+      { id: 'short', title: t('Corta · ≤ 13 ep'), value: 'short', patch: { len: 'short' }, active: (f) => f.len === 'short' },
+      { id: 'mid', title: t('Media · 14–26 ep'), value: 'mid', patch: { len: 'mid' }, active: (f) => f.len === 'mid' },
+      { id: 'long', title: t('Larga · 27–75 ep'), value: 'long', patch: { len: 'long' }, active: (f) => f.len === 'long' },
+      { id: 'huge', title: t('Muy larga · 75+'), value: 'huge', patch: { len: 'huge' }, active: (f) => f.len === 'huge' },
+    ].concat(F.epsMin != null || F.epsMax != null ? [{ id: 'custom', title: `${F.epsMin || 1}–${F.epsMax || '∞'} ep (${t('texto')})`, patch: { epsMin: F.epsMin, epsMax: F.epsMax }, active: () => true }] : []), F));
 
     // Themes (AniList tags) — the most frequent in the current results, plus selected ones.
     const voc = vocabularyOf(F, 'tags');
@@ -119,112 +119,113 @@ CRP.views.search = (ctx) => {
       const top = [...voc.themes].sort((a, b) => b[1] - a[1]).map(([n]) => n);
       const shown = [...new Set([...selected, ...top.slice(0, showAllThemes ? 80 : 24)])];
       groups.push(h('div.fgroup',
-        h('h4', 'Temas ', h('small.hint', 'de AniList · clic: incluir · otro: excluir')),
+        h('h4', t('Temas') + ' ', h('small.hint', t('de AniList · clic: incluir · otro: excluir'))),
         h('div.gchips', shown.map((n) => {
           const st = F.tagsIn.includes(n) ? 'in' : F.tagsOut.includes(n) ? 'out' : '';
           return h('button.gchip' + (st ? '.' + st : ''), { title: n, onclick: () => cycle('tagsIn', 'tagsOut', 'tag', n, st, F) },
             st === 'out' ? '− ' : st === 'in' ? '+ ' : '', T.label(n), st === 'out' ? null : h('small', voc.themes.get(n) || 0));
         })),
-        top.length > 24 ? h('button.linkbtn', { onclick: () => { showAllThemes = !showAllThemes; render(); } }, showAllThemes ? 'Ver menos' : `Ver más (${Math.min(top.length, 80) - 24})`) : null));
+        top.length > 24 ? h('button.linkbtn', { onclick: () => { showAllThemes = !showAllThemes; render(); } }, showAllThemes ? t('Ver menos') : t('Ver más ({n})', { n: Math.min(top.length, 80) - 24 })) : null));
     }
 
-    groups.push(radioGroup('Nota mínima', 'ratingMin', [
-      { id: 'any', title: 'Cualquiera' },
-      { id: '40', title: '★ 4.0 o más', value: 4, patch: { ratingMin: 4 }, active: (f) => f.ratingMin === 4 },
-      { id: '45', title: '★ 4.5 o más', value: 4.5, patch: { ratingMin: 4.5 }, active: (f) => f.ratingMin === 4.5 },
-      { id: '47', title: '★ 4.7 o más', value: 4.7, patch: { ratingMin: 4.7 }, active: (f) => f.ratingMin === 4.7 },
-    ].concat(F.ratingMin && ![4, 4.5, 4.7].includes(F.ratingMin) ? [{ id: 'custom', title: `★ ${F.ratingMin} o más`, patch: { ratingMin: F.ratingMin }, active: () => true }] : []), F, 'rating'));
-    groups.push(radioGroup('Nota AniList', 'alMin', [
-      { id: 'any', title: 'Cualquiera' },
-      { id: '70', title: '70 o más', value: 70, patch: { alMin: 70 }, active: (f) => f.alMin === 70 },
-      { id: '80', title: '80 o más', value: 80, patch: { alMin: 80 }, active: (f) => f.alMin === 80 },
-      { id: '85', title: '85 o más', value: 85, patch: { alMin: 85 }, active: (f) => f.alMin === 85 },
-    ].concat(F.alMin && ![70, 80, 85].includes(F.alMin) ? [{ id: 'custom', title: `${F.alMin} o más`, patch: { alMin: F.alMin }, active: () => true }] : []), F, 'al'));
+    const orMore = (v) => t('{v} o más', { v });
+    groups.push(radioGroup(t('Nota mínima'), 'ratingMin', [
+      { id: 'any', title: t('Cualquiera') },
+      { id: '40', title: orMore('★ 4.0'), value: 4, patch: { ratingMin: 4 }, active: (f) => f.ratingMin === 4 },
+      { id: '45', title: orMore('★ 4.5'), value: 4.5, patch: { ratingMin: 4.5 }, active: (f) => f.ratingMin === 4.5 },
+      { id: '47', title: orMore('★ 4.7'), value: 4.7, patch: { ratingMin: 4.7 }, active: (f) => f.ratingMin === 4.7 },
+    ].concat(F.ratingMin && ![4, 4.5, 4.7].includes(F.ratingMin) ? [{ id: 'custom', title: orMore(`★ ${F.ratingMin}`), patch: { ratingMin: F.ratingMin }, active: () => true }] : []), F, 'rating'));
+    groups.push(radioGroup(t('Nota AniList'), 'alMin', [
+      { id: 'any', title: t('Cualquiera') },
+      { id: '70', title: orMore(70), value: 70, patch: { alMin: 70 }, active: (f) => f.alMin === 70 },
+      { id: '80', title: orMore(80), value: 80, patch: { alMin: 80 }, active: (f) => f.alMin === 80 },
+      { id: '85', title: orMore(85), value: 85, patch: { alMin: 85 }, active: (f) => f.alMin === 85 },
+    ].concat(F.alMin && ![70, 80, 85].includes(F.alMin) ? [{ id: 'custom', title: orMore(F.alMin), patch: { alMin: F.alMin }, active: () => true }] : []), F, 'al'));
 
     const vs = vocabularyOf(F, 'source');
     if (vs.sources.size || F.source) {
       const srcOpts = [...vs.sources].sort((a, b) => b[1] - a[1]).slice(0, 8).map(([src]) => (
         { id: src, title: T.sourceLabel(src), value: src, patch: { source: src }, active: (f) => f.source === src }));
       if (F.source && !srcOpts.some((o) => o.id === F.source)) srcOpts.push({ id: F.source, title: T.sourceLabel(F.source), value: F.source, patch: { source: F.source }, active: () => true });
-      groups.push(radioGroup('Origen', 'source', [{ id: 'any', title: 'Cualquiera' }, ...srcOpts], F));
+      groups.push(radioGroup(t('Origen'), 'source', [{ id: 'any', title: t('Cualquiera') }, ...srcOpts], F));
     }
     const vst = vocabularyOf(F, 'studio');
     if (vst.studios.size || F.studio) {
       const studios = [...vst.studios].sort((a, b) => b[1] - a[1]).slice(0, 40);
       if (F.studio && !studios.some(([n]) => n === F.studio)) studios.unshift([F.studio, 0]);
-      groups.push(h('div.fgroup', h('h4', 'Estudio'),
-        ui.select([{ id: '', title: 'Cualquiera' }, ...studios.map(([n, c]) => ({ id: n, title: `${n} (${c})` }))], F.studio || '',
-          (v) => setFacet('studio', v || null), 'Estudio')));
+      groups.push(h('div.fgroup', h('h4', t('Estudio')),
+        ui.select([{ id: '', title: t('Cualquiera') }, ...studios.map(([n, c]) => ({ id: n, title: `${n} (${c})` }))], F.studio || '',
+          (v) => setFacet('studio', v || null), t('Estudio'))));
     }
 
     const yr = (a, b) => (f) => (f.yearMin || null) === a && (f.yearMax || null) === b;
     const yearOpts = [
-      { id: 'any', title: 'Cualquiera' },
+      { id: 'any', title: t('Cualquiera') },
       { id: 'new', title: `${year - 2}–${year}`, value: { yearMin: year - 2, yearMax: null }, patch: { yearMin: year - 2 }, active: yr(year - 2, null) },
       { id: '2020', title: `2020–${year - 3}`, value: { yearMin: 2020, yearMax: year - 3 }, patch: { yearMin: 2020, yearMax: year - 3 }, active: yr(2020, year - 3) },
       { id: '2010', title: '2010–2019', value: { yearMin: 2010, yearMax: 2019 }, patch: { yearMin: 2010, yearMax: 2019 }, active: yr(2010, 2019) },
-      { id: 'old', title: 'Antes de 2010', value: { yearMin: null, yearMax: 2009 }, patch: { yearMax: 2009 }, active: yr(null, 2009) },
+      { id: 'old', title: t('Antes de 2010'), value: { yearMin: null, yearMax: 2009 }, patch: { yearMax: 2009 }, active: yr(null, 2009) },
     ];
     if ((F.yearMin || F.yearMax) && !yearOpts.some((o) => o.active && o.active(F))) {
-      yearOpts.push({ id: 'custom', title: `${F.yearMin || '…'}–${F.yearMax || '…'} (texto)`, patch: { yearMin: F.yearMin, yearMax: F.yearMax }, active: () => true });
+      yearOpts.push({ id: 'custom', title: `${F.yearMin || '…'}–${F.yearMax || '…'} (${t('texto')})`, patch: { yearMin: F.yearMin, yearMax: F.yearMax }, active: () => true });
     }
-    groups.push(radioGroup('Año', 'year', yearOpts, F));
-    groups.push(radioGroup('Estado', 'status', [
-      { id: 'any', title: 'Cualquiera' },
-      { id: 'airing', title: 'En emisión', value: 'airing', patch: { status: 'airing' }, active: (f) => f.status === 'airing' },
-      { id: 'finished', title: 'Terminada', value: 'finished', patch: { status: 'finished' }, active: (f) => f.status === 'finished' },
+    groups.push(radioGroup(t('Año'), 'year', yearOpts, F));
+    groups.push(radioGroup(t('Estado'), 'status', [
+      { id: 'any', title: t('Cualquiera') },
+      { id: 'airing', title: t('En emisión'), value: 'airing', patch: { status: 'airing' }, active: (f) => f.status === 'airing' },
+      { id: 'finished', title: t('Terminada'), value: 'finished', patch: { status: 'finished' }, active: (f) => f.status === 'finished' },
     ], F));
     if (index && index.tags && index.tags.length) {
-      groups.push(radioGroup('Temporada', 'season', [{ id: 'any', title: 'Cualquiera' }].concat(index.tags.map((t) => (
-        { id: t.id, title: t.title, value: t.id, patch: { season: t.id }, active: (f) => f.season === t.id }))), F));
+      groups.push(radioGroup(t('Temporada'), 'season', [{ id: 'any', title: t('Cualquiera') }].concat(index.tags.map((tag) => (
+        { id: tag.id, title: tag.title, value: tag.id, patch: { season: tag.id }, active: (f) => f.season === tag.id }))), F));
     }
     groups.push(h('div.fgroup',
-      h('h4', 'Géneros ', h('small.hint', 'clic: incluir · otro clic: excluir')),
+      h('h4', t('Géneros') + ' ', h('small.hint', t('clic: incluir · otro clic: excluir'))),
       h('div.gchips', genres.map((g) => {
         const st = F.genresIn.includes(g.id) ? 'in' : F.genresOut.includes(g.id) ? 'out' : '';
         return h('button.gchip' + (st ? '.' + st : '') + (!st && gCounts[g.id] === 0 ? '.dim' : ''), {
-          title: st === 'in' ? 'Incluido (clic para excluir)' : st === 'out' ? 'Excluido (clic para quitar)' : 'Clic para incluir',
+          title: st === 'in' ? t('Incluido (clic para excluir)') : st === 'out' ? t('Excluido (clic para quitar)') : t('Clic para incluir'),
           onclick: () => cycle('genresIn', 'genresOut', 'genre', g.id, st, F),
         }, st === 'out' ? '− ' : st === 'in' ? '+ ' : '', g.title, h('small', st === 'out' ? '' : gCounts[g.id]));
       }))));
-    groups.push(h('div.fgroup', ui.toggle('Sin contenido +18', !!F.noMature, (v) => setFacet('noMature', v || null))));
-    groups.push(h('button.btn.ghost.small.reset', { onclick: () => { facets = {}; sort = null; text = ''; ctx.setQueryText(''); render(); } }, 'Limpiar todo'));
+    groups.push(h('div.fgroup', ui.toggle(t('Sin contenido +18'), !!F.noMature, (v) => setFacet('noMature', v || null))));
+    groups.push(h('button.btn.ghost.small.reset', { onclick: () => { facets = {}; sort = null; text = ''; ctx.setQueryText(''); render(); } }, t('Limpiar todo')));
     fill(side, groups);
   }
 
   // --------------------------------------------------------------- results
   const SORTS = [
-    { id: 'relevance', title: 'Relevancia' },
-    { id: 'rating', title: 'Mejor valoradas (CR + AniList)' },
-    { id: 'anilist', title: 'Nota AniList' },
-    { id: 'gems', title: 'Joyas ocultas' },
-    { id: 'popular', title: 'Más populares' },
-    { id: 'recent', title: 'Último episodio' },
-    { id: 'year', title: 'Más nuevas' },
-    { id: 'short', title: 'Más cortas' },
+    { id: 'relevance', title: t('Relevancia') },
+    { id: 'rating', title: t('Mejor valoradas (CR + AniList)') },
+    { id: 'anilist', title: t('Nota AniList') },
+    { id: 'gems', title: t('Joyas ocultas') },
+    { id: 'popular', title: t('Más populares') },
+    { id: 'recent', title: t('Último episodio') },
+    { id: 'year', title: t('Más nuevas') },
+    { id: 'short', title: t('Más cortas') },
     { id: 'alpha', title: 'A–Z' },
   ];
 
   // "Guardar como estantería": inline name field, saved to settings (synced).
   function saveShelfUI() {
-    const name = h('input.shelfname', { type: 'text', value: CRP.finder.describe(state(), ctx), maxlength: '60', 'aria-label': 'Nombre de la estantería' });
+    const name = h('input.shelfname', { type: 'text', value: CRP.finder.describe(state(), ctx), maxlength: '60', 'aria-label': t('Nombre de la estantería') });
     const box = h('div.shelfsave', name,
       h('button.btn.small', {
         onclick: async () => {
           const shelves = [...(CRP.store.get().shelves || [])];
-          shelves.push({ id: 's' + Date.now().toString(36), name: name.value.trim() || 'Mi estantería', text, facets, sort });
+          shelves.push({ id: 's' + Date.now().toString(36), name: name.value.trim() || t('Mi estantería'), text, facets, sort });
           await CRP.store.set({ shelves });
-          ui.toast(`Estantería «${name.value.trim()}» añadida a Hoy`);
+          ui.toast(t('Estantería «{name}» añadida a Hoy', { name: name.value.trim() }));
           box.replaceWith(saveBtn());
           ctx.emit('shelves');
         },
-      }, 'Guardar'),
-      h('button.btn.ghost.small', { onclick: () => box.replaceWith(saveBtn()) }, 'Cancelar'));
+      }, t('Guardar')),
+      h('button.btn.ghost.small', { onclick: () => box.replaceWith(saveBtn()) }, t('Cancelar')));
     setTimeout(() => { name.focus(); name.select(); });
     return box;
   }
   const saveBtn = () => {
-    const b = h('button.btn.ghost.small', { title: 'Guarda esta búsqueda como una fila fija en Hoy', onclick: () => b.replaceWith(saveShelfUI()) }, ui.icon('plus', 14), 'Guardar como estantería');
+    const b = h('button.btn.ghost.small', { title: t('Guarda esta búsqueda como una fila fija en Hoy'), onclick: () => b.replaceWith(saveShelfUI()) }, ui.icon('plus', 14), t('Guardar como estantería'));
     return b;
   };
 
@@ -235,22 +236,22 @@ CRP.views.search = (ctx) => {
     renderFacets(r.F);
 
     const chips = r.p.chips.map((c) => h('span.qchip' + (c.kind === 'neg' ? '.neg' : c.kind === 'like' ? '.like' : ''), c.label,
-      h('button', { title: 'Quitar', onclick: () => { text = CRP.query.removeSpan(text, c); ctx.setQueryText(text); render(); } }, '×')));
+      h('button', { title: t('Quitar'), onclick: () => { text = CRP.query.removeSpan(text, c); ctx.setQueryText(text); render(); } }, '×')));
     if (r.p.rest && !r.ignored) chips.push(h('span.qchip.text', `“${r.p.rest}”`));
-    if (r.ignored) chips.push(h('span.qchip.ignored', { title: 'No hay resultados que lo contengan, así que se ha ignorado' }, `“${r.ignored}” ignorado`));
+    if (r.ignored) chips.push(h('span.qchip.ignored', { title: t('No hay resultados que lo contengan, así que se ha ignorado') }, t('“{x}” ignorado', { x: r.ignored })));
     const filtered = !!(text.trim() || Object.keys(facets).length);
 
     fill(head,
       h('div.qline',
-        chips.length ? h('div.qchips', h('span.lbl', 'Entendido:'), chips) : h('div.qhelp', 'Escribe como hablas: ', h('i', '“isekai corto en castellano, sin harén, de mappa”')),
-        h('div.rescount', r.likePending ? 'Buscando parecidas…' : `${r.list.length.toLocaleString('es-ES')} título${r.list.length === 1 ? '' : 's'}`),
+        chips.length ? h('div.qchips', h('span.lbl', t('Entendido:')), chips) : h('div.qhelp', t('Escribe como hablas:') + ' ', h('i', `“${t('isekai corto en castellano, sin harén, de mappa')}”`)),
+        h('div.rescount', r.likePending ? t('Buscando parecidas…') : r.list.length === 1 ? t('1 título') : t('{n} títulos', { n: fmtNum(r.list.length) })),
         filtered ? saveBtn() : null,
-        ui.select(SORTS, r.sortId, (v) => { sort = v; render(); }, 'Ordenar'),
+        ui.select(SORTS, r.sortId, (v) => { sort = v; render(); }, t('Ordenar')),
       ),
     );
 
     if (!r.list.length) {
-      fill(results, ui.empty(r.likePending ? 'Buscando parecidas…' : 'Nada encaja con todo eso. Quita algún filtro o prueba otra frase.'));
+      fill(results, ui.empty(r.likePending ? t('Buscando parecidas…') : t('Nada encaja con todo eso. Quita algún filtro o prueba otra frase.')));
       return;
     }
     fill(results, ui.lazyGrid(r.list, (s) => ui.posterCard(s, { ctx, badge: ctx.badge(s), actions: ['list', 'like', 'dislike'] })));
@@ -261,8 +262,8 @@ CRP.views.search = (ctx) => {
   // -------------------------------------------------------------- lifecycle
   async function start() {
     fill(results, h('div.indexing',
-      h('p', 'Preparando el catálogo completo para filtrar al instante…'),
-      ui.progressBar(0.02, 'Primera vez: ~10–20 s. Después es inmediato.')));
+      h('p', t('Preparando el catálogo completo para filtrar al instante…')),
+      ui.progressBar(0.02, t('Primera vez: ~10–20 s. Después es inmediato.'))));
     const bar = results.querySelector('.pbar');
     const off = cat.onProgress((p) => bar && bar.set(p, `${Math.round(p * 100)}%`));
     try {
@@ -282,9 +283,9 @@ CRP.views.search = (ctx) => {
 
   return {
     el,
-    title: 'Buscar',
-    setText(t) {
-      text = t;
+    title: t('Buscar'),
+    setText(s) {
+      text = s;
       // What you just typed wins over an older sidebar choice for the same field.
       if (cat.current()) {
         for (const c of CRP.finder.parse(text, ctx).chips) {

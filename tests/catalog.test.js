@@ -25,7 +25,7 @@ const items = [
 items[3].kind = 'movie_listing';
 const snap = { v: 3, ts: now, locale: 'es-ES', total: items.length, tags: [{ id: 'fall-2026', title: 'Otoño 2026' }], items };
 
-const env = load(['src/core/util.js', 'src/core/model.js', 'src/core/store.js', 'src/core/api.js', 'src/core/external.js', 'src/core/tags.js', 'src/core/catalog.js'],
+const env = load(['src/core/util.js', 'src/core/i18n.js', 'src/core/model.js', 'src/core/store.js', 'src/core/api.js', 'src/core/external.js', 'src/core/tags.js', 'src/core/catalog.js'],
   { storage: { 'catalog:es-ES': snap } });
 const { CRP } = env;
 const ctx = { hasWatched: (id) => id === 'A', inWatchlist: (id) => id === 'B', seriesStats: () => new Map([['A', { eps: 3 }]]) };

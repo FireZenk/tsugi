@@ -15,10 +15,7 @@ CRP.model = (() => {
     romance: 'Romance', 'sci-fi': 'Ciencia ficción', seinen: 'Seinen', shojo: 'Shojo', shonen: 'Shonen',
     'slice of life': 'Recuentos de la vida', sports: 'Deportes', supernatural: 'Sobrenatural', thriller: 'Thriller',
   };
-  for (const g of BASE_GENRES) {
-    genreIndex.set(g, g);
-    genreTitles.set(g, ES_TITLES[g] || g);
-  }
+  for (const g of BASE_GENRES) genreIndex.set(g, g);
   for (const [alias, id] of [['shoujo', 'shojo'], ['shounen', 'shonen'], ['science fiction', 'sci-fi'], ['musical', 'music']]) genreIndex.set(alias, id);
 
   function setCategories(items) {
@@ -31,8 +28,11 @@ CRP.model = (() => {
     }
   }
   const genreId = (name) => genreIndex.get(String(name).toLowerCase()) || null;
-  const genreTitle = (id) => genreTitles.get(id) || id;
-  const allGenres = () => [...genreTitles.entries()].map(([id, title]) => ({ id, title }));
+  // Titles come localized from the API (site language); until then, translated defaults.
+  // Crunchyroll's own (site-language) names when the UI speaks that language too.
+  const siteLangUI = () => CRP.i18n.locale().split('-')[0] === CRP.util.contentLocale().split('-')[0];
+  const genreTitle = (id) => (siteLangUI() && genreTitles.get(id)) || (ES_TITLES[id] ? t(ES_TITLES[id]) : genreTitles.get(id) || id);
+  const allGenres = () => [...new Set([...BASE_GENRES, ...genreTitles.keys()])].map((id) => ({ id, title: genreTitle(id) }));
   const genresOf = (list) => [...new Set((list || []).map(genreId).filter(Boolean))];
 
   // series / movie_listing panels (browse, search, similar_to, cms/objects, watchlist)
@@ -139,10 +139,10 @@ CRP.model = (() => {
   const siteUrl = (path) => `${prefix()}${path}`;
 
   function epLabel(e) {
-    if (e.kind === 'movie') return 'Película';
+    if (e.kind === 'movie') return t('Película');
     const parts = [];
-    if (e.season) parts.push(`T${e.season}`);
-    if (e.number != null && e.number !== '') parts.push(`E${e.number}`);
+    if (e.season) parts.push(t('T{n}', { n: e.season }));
+    if (e.number != null && e.number !== '') parts.push(t('E{n}', { n: e.number }));
     return parts.join(' · ');
   }
 

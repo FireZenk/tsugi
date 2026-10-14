@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>CR+ dev harness</title>
   <!-- Dev only: loads the real content scripts (same order as manifest.json) with
-       mocked chrome.* and Crunchyroll API. Add ?anon to simulate a logged-out visitor.
+       mocked chrome.* and Crunchyroll API. Add ?anon to simulate a logged-out visitor,
+       ?site=en|es-419|it|de|fr for another site language.
        Run: python3 dev/serve.py  ->  http://127.0.0.1:8777/dev/harness.html -->
   <script>
     const v = Date.now();
@@ -13,6 +14,7 @@
     document.write(`<link rel="stylesheet" href="../src/boot.css?v=${v}">`);
     load('mock.js');
     load('../src/core/util.js');
+    ['core/i18n', 'i18n/en', 'i18n/es-419', 'i18n/it', 'i18n/de', 'i18n/fr'].forEach((f) => load(`../src/${f}.js`));
     // The harness isn't served from crunchyroll.com/es-es/: pretend it is.
     load('harness-patch.js');
     ['core/diag', 'core/model', 'core/store', 'core/api', 'core/external', 'core/tags', 'core/catalog', 'core/query', 'core/finder', 'core/profile', 'core/recs', 'core/agenda', 'ui/components', 'ui/drawer',

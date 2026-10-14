@@ -97,8 +97,9 @@ CRP.tags = (() => {
   };
 
   const labels = new Map(THEMES.map(([name, label]) => [name, label]));
-  const label = (name) => labels.get(name) || name;
-  const sourceLabel = (src) => SOURCES[src] || src;
+  // labels are Spanish keys, translated for the UI language
+  const label = (name) => (labels.has(name) ? t(labels.get(name)) : name);
+  const sourceLabel = (src) => (SOURCES[src] ? t(SOURCES[src]) : src);
 
   // normalized alias -> AniList name. Extra names seen in the data (English tags the
   // dictionary doesn't cover, like "Fugitive") are added as typed in English.
@@ -112,14 +113,29 @@ CRP.tags = (() => {
     for (const n of names) if (!aliases.has(norm(n))) aliases.set(norm(n), n);
   }
 
+  // The UI language's translated labels are typed too ("Zeitreise", "voyage dans le
+  // temps"): added once the language is known.
+  const langsDone = new Set(['es']);
+  function addLangAliases() {
+    const l = CRP.i18n ? CRP.i18n.current() : 'es';
+    if (langsDone.has(l)) return;
+    langsDone.add(l);
+    for (const [name, lab] of THEMES) {
+      const tr = norm(t(lab));
+      if (tr.length > 2 && !aliases.has(tr)) aliases.set(tr, name);
+    }
+  }
+
   let themeRe = null;
-  let themeReSize = 0;
-  function themeRegex() {
-    if (!themeRe || themeReSize !== aliases.size) {
+  let themeKey = '';
+  function themeRegex(negAlt = 'sin|no|nada de|excepto|menos|ni') {
+    addLangAliases();
+    const key = aliases.size + '|' + negAlt;
+    if (!themeRe || themeKey !== key) {
       const alt = [...aliases.keys()].sort((a, b) => b.length - a.length).map((s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
-      // optional negation like the genre rule: "sin harén", "ni gore", "-isekai"
-      themeRe = new RegExp(`(?:\\b(sin|no|nada de|excepto|menos|ni)\\s+|(-))?\\b(${alt})\\b`, 'g');
-      themeReSize = aliases.size;
+      // optional negation like the genre rule: "sin harén", "ni gore", "no harem", "-isekai"
+      themeRe = new RegExp(`(?:\\b(${negAlt})\\s+|(-))?\\b(${alt})\\b`, 'g');
+      themeKey = key;
     }
     return themeRe;
   }
@@ -149,7 +165,7 @@ CRP.tags = (() => {
     if (m.size === studioMap.size) return;
     studioMap = m;
     const alt = [...m.keys()].sort((a, b) => b.length - a.length).map((s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
-    studioRe = alt ? new RegExp(`\\b(?:del estudio|estudio|studio|animad[ao]s? por|de)\\s+(${alt})\\b`, 'g') : null;
+    studioRe = alt ? new RegExp(`\\b(?:del estudio|estudio|studio|animad[ao]s? por|animated by|animat[oa] da|animiert von|anime par|du studio|dello studio|by|von|par|di|de)\\s+(${alt})\\b`, 'g') : null;
   }
 
   return {

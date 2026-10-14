@@ -80,7 +80,7 @@ CRP.finder = (() => {
     if (f.genresIn) parts.push(...f.genresIn.map(CRP.model.genreTitle));
     if (f.tagsIn) parts.push(...f.tagsIn.map(CRP.tags.label));
     if (f.studio) parts.push(f.studio);
-    return parts.slice(0, 4).join(' · ') || 'Mi estantería';
+    return parts.slice(0, 4).join(' · ') || t('Mi estantería');
   }
 
   return { parse, run, effective, hasFilters, describe };

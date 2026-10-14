@@ -10,26 +10,27 @@ CRP.views.today = (ctx) => {
   const cat = CRP.catalog;
 
   const el = h('div.view.today');
-  const pickBlock = ui.block({ title: '¿Qué veo ahora?', cls: 'pick' });
-  const contBlock = ui.block({ title: 'Sigue viendo' });
-  const weekBlock = ui.block({ title: 'Esta semana', controls: [h('button.btn.ghost.small', { onclick: () => ctx.go('agenda') }, 'Abrir agenda')] });
-  const quickBlock = ui.block({ title: 'Búsquedas rápidas', subtitle: 'Cosas que en Crunchyroll no se pueden filtrar' });
+  const pickBlock = ui.block({ title: t('¿Qué veo ahora?'), cls: 'pick' });
+  const contBlock = ui.block({ title: t('Sigue viendo') });
+  const weekBlock = ui.block({ title: t('Esta semana'), controls: [h('button.btn.ghost.small', { onclick: () => ctx.go('agenda') }, t('Abrir agenda'))] });
+  const quickBlock = ui.block({ title: t('Búsquedas rápidas'), subtitle: t('Cosas que en Crunchyroll no se pueden filtrar') });
   const shelvesHost = h('div.shelves');
-  const moodBlock = ui.block({ title: '¿Qué te apetece?', subtitle: 'Elige un plan y te enseño lo mejor que no has visto' });
+  const moodBlock = ui.block({ title: t('¿Qué te apetece?'), subtitle: t('Elige un plan y te enseño lo mejor que no has visto') });
   fill(el, pickBlock.el, contBlock.el, moodBlock.el, shelvesHost, weekBlock.el, quickBlock.el);
 
   // ---------------------------------------------------------------- moods
   // Each mood is just a search (same parser and engine as Buscar), best rated first.
+  // Queries are written in the UI language (the parser understands it).
   const MOODS = [
-    { id: 'light', title: 'Algo ligero', q: 'comedia sin tragedia ni gore sin ver' },
-    { id: 'epic', title: 'Épico', q: 'accion aventura buenas sin ver' },
-    { id: 'cry', title: 'Para llorar', q: 'drama tragedia sin ver' },
-    { id: 'think', title: 'Para pensar', q: 'psicologico sin ver' },
-    { id: 'mystery', title: 'Misterio', q: 'misterio sin ver' },
-    { id: 'love', title: 'Romántico', q: 'romance sin tragedia sin ver' },
-    { id: 'chill', title: 'Relajante', q: 'relajante sin ver' },
-    { id: 'tense', title: 'Tensión', q: 'supervivencia sin ver' },
-    { id: 'fantasy', title: 'Otros mundos', q: 'isekai sin ver' },
+    { id: 'light', title: t('Algo ligero'), q: t('comedia sin tragedia ni gore sin ver') },
+    { id: 'epic', title: t('Épico'), q: t('accion aventura buenas sin ver') },
+    { id: 'cry', title: t('Para llorar'), q: t('drama tragedia sin ver') },
+    { id: 'think', title: t('Para pensar'), q: t('psicologico sin ver') },
+    { id: 'mystery', title: t('Misterio'), q: t('misterio sin ver') },
+    { id: 'love', title: t('Romántico'), q: t('romance sin tragedia sin ver') },
+    { id: 'chill', title: t('Relajante'), q: t('relajante sin ver') },
+    { id: 'tense', title: t('Tensión'), q: t('supervivencia sin ver') },
+    { id: 'fantasy', title: t('Otros mundos'), q: t('isekai sin ver') },
   ];
   let mood = null;
   function renderMood() {
@@ -43,8 +44,8 @@ CRP.views.today = (ctx) => {
       ? h('div.moodrow',
         cur.r.list.length
           ? ui.row(cur.r.list.slice(0, 18).map((x) => ui.posterCard(x, { ctx, badge: ctx.badge(x), actions: ['list', 'like', 'dislike'] })))
-          : ui.empty('Nada sin ver con este plan. Prueba otro.'),
-        h('button.btn.ghost.small', { onclick: () => ctx.search({ text: cur.m.q, facets: {}, sort: 'rating' }) }, `Ver las ${cur.r.list.length} en Buscar`))
+          : ui.empty(t('Nada sin ver con este plan. Prueba otro.')),
+        h('button.btn.ghost.small', { onclick: () => ctx.search({ text: cur.m.q, facets: {}, sort: 'rating' }) }, t('Ver las {n} en Buscar', { n: cur.r.list.length })))
       : null);
   }
 
@@ -59,8 +60,8 @@ CRP.views.today = (ctx) => {
     const shelves = CRP.store.get().shelves || [];
     if (!shelves.length) {
       fill(shelvesHost, h('div.shelfhint', ui.icon('sparkle', 16),
-        h('span', 'Crea tus propias filas: busca algo en ', h('b', 'Buscar'), ' (p. ej. «isekai corto en castellano, sin harén») y pulsa «Guardar como estantería».'),
-        h('button.btn.ghost.small', { onclick: () => saveShelves([{ id: 's' + Date.now().toString(36), name: 'Lo mejor según AniList que no has visto', text: 'anilist 85 sin ver', facets: {}, sort: null }]) }, 'Añadir un ejemplo')));
+        h('span', t('Crea tus propias filas: busca algo en «Buscar» (p. ej. «{example}») y pulsa «Guardar como estantería».', { example: t('isekai corto en castellano, sin harén') })),
+        h('button.btn.ghost.small', { onclick: () => saveShelves([{ id: 's' + Date.now().toString(36), name: t('Lo mejor según AniList que no has visto'), text: t('anilist 85 sin ver'), facets: {}, sort: null }]) }, t('Añadir un ejemplo'))));
       return;
     }
     fill(shelvesHost, shelves.map((sh, i) => {
@@ -77,16 +78,16 @@ CRP.views.today = (ctx) => {
       };
       const b = ui.block({
         title: sh.name,
-        subtitle: r.likePending ? 'Buscando…' : `${r.list.length} título${r.list.length === 1 ? '' : 's'}`,
+        subtitle: r.likePending ? t('Buscando…') : r.list.length === 1 ? t('1 título') : t('{n} títulos', { n: r.list.length }),
         controls: [
-          h('button.btn.ghost.small', { onclick: () => ctx.search({ text: sh.text, facets: sh.facets || {}, sort: sh.sort || null }) }, 'Ver todo'),
-          h('button.icon', { title: 'Renombrar', onclick: rename }, '✎'),
-          i > 0 ? h('button.icon', { title: 'Subir', onclick: () => { const all = [...shelves]; [all[i - 1], all[i]] = [all[i], all[i - 1]]; saveShelves(all); } }, ui.icon('up', 16)) : null,
+          h('button.btn.ghost.small', { onclick: () => ctx.search({ text: sh.text, facets: sh.facets || {}, sort: sh.sort || null }) }, t('Ver todo')),
+          h('button.icon', { title: t('Renombrar'), onclick: rename }, '✎'),
+          i > 0 ? h('button.icon', { title: t('Subir'), onclick: () => { const all = [...shelves]; [all[i - 1], all[i]] = [all[i], all[i - 1]]; saveShelves(all); } }, ui.icon('up', 16)) : null,
           h('button.icon', {
-            title: 'Quitar estantería',
+            title: t('Quitar estantería'),
             onclick: () => {
               saveShelves(shelves.filter((x) => x.id !== sh.id));
-              ui.toast(`Estantería «${sh.name}» quitada`, { action: { label: 'Deshacer', run: () => saveShelves(shelves) } });
+              ui.toast(t('Estantería «{name}» quitada', { name: sh.name }), { action: { label: t('Deshacer'), run: () => saveShelves(shelves) } });
             },
           }, ui.icon('x', 16)),
         ],
@@ -95,7 +96,7 @@ CRP.views.today = (ctx) => {
       b.el.querySelector('h2').replaceWith(title);
       b.setBody(r.list.length
         ? ui.row(r.list.slice(0, 24).map((x) => ui.posterCard(x, { ctx, badge: ctx.badge(x), actions: ['list', 'like', 'dislike'] })))
-        : ui.empty('Ahora mismo nada encaja con esta estantería.'));
+        : ui.empty(t('Ahora mismo nada encaja con esta estantería.')));
       return b.el;
     }));
   }
@@ -117,21 +118,21 @@ CRP.views.today = (ctx) => {
         .map((s) => ({
           kind: 'ep', e: s.next, series: s,
           label: s.next.airDate && now - Date.parse(s.next.airDate) < 3 * 86400000
-            ? `Nuevo · salió ${timeAgo(s.next.airDate)}`
-            : `Te quedan ${s.pendingCount} ep de ${s.title}`,
+            ? t('Nuevo · salió {ago}', { ago: timeAgo(s.next.airDate) })
+            : t('Te quedan {n} ep de {title}', { n: s.pendingCount, title: s.title }),
         }));
       return eps;
     }
     if (m === 'evening') {
       const finish = (ag ? ag.series : []).filter((s) => s.state === 'active' && s.next && s.pendingCount <= 4 && s.pendingMin <= 130)
-        .map((s) => ({ kind: 'ep', e: s.next, series: s, label: `Termínala esta noche: ${s.pendingCount} ep · ${fmtMinutes(s.pendingMin)}` }));
+        .map((s) => ({ kind: 'ep', e: s.next, series: s, label: t('Termínala esta noche: {n} ep · {time}', { n: s.pendingCount, time: fmtMinutes(s.pendingMin) }) }));
       const movies = (recs || []).filter((r) => r.series.kind === 'movie_listing')
         .map((r) => ({ kind: 'series', s: r.series, why: CRP.recs.why(r), traits: r.traits }));
       return finish.concat(movies);
     }
     // binge: your queue first, then finished series of 10–40 episodes, best ranked
     const queued = ctx.queue(ag).map((q) => CRP.catalog.get(q.id)).filter(Boolean)
-      .map((x) => ({ kind: 'series', s: x, why: 'Siguiente en tu cola', traits: [x.episodes ? `${x.episodes} ep` : null].filter(Boolean) }));
+      .map((x) => ({ kind: 'series', s: x, why: t('Siguiente en tu cola'), traits: [x.episodes ? t('{n} ep', { n: x.episodes }) : null].filter(Boolean) }));
     return queued.concat((recs || []).filter((r) => r.series.kind !== 'movie_listing' && !cat.isAiring(r.series) && r.series.episodes >= 10 && r.series.episodes <= 40)
       .map((r) => ({ kind: 'series', s: r.series, why: CRP.recs.why(r), traits: r.traits })));
   }
@@ -146,24 +147,24 @@ CRP.views.today = (ctx) => {
           h('h3', e.seriesTitle || c.series.title),
           h('div.bpsub', `${M.epLabel(e)} — ${e.title}`),
           h('div.bpacts',
-            h('a.btn', { href: M.episodeUrl(e) }, ui.icon('play', 16), 'Ver ahora'),
-            h('button.btn.ghost', { title: 'Marcar este episodio como visto', onclick: () => ctx.markWatched(e) }, ui.icon('check', 14), 'Ya lo vi'),
-            h('button.btn.ghost', { onclick: () => ctx.openSeries(cat.get(c.series.id) || { id: c.series.id, title: c.series.title, genres: [], audio: [], subs: [] }) }, 'Ficha'),
-            h('button.btn.ghost', { onclick: () => { offset++; renderPick(); } }, ui.icon('refresh', 14), 'Otra'))));
+            h('a.btn', { href: M.episodeUrl(e) }, ui.icon('play', 16), t('Ver ahora')),
+            h('button.btn.ghost', { title: t('Marcar este episodio como visto'), onclick: () => ctx.markWatched(e) }, ui.icon('check', 14), t('Ya lo vi')),
+            h('button.btn.ghost', { onclick: () => ctx.openSeries(cat.get(c.series.id) || { id: c.series.id, title: c.series.title, genres: [], audio: [], subs: [] }) }, t('Ficha')),
+            h('button.btn.ghost', { onclick: () => { offset++; renderPick(); } }, ui.icon('refresh', 14), t('Otra')))));
     }
     const s = c.s;
     return h('div.bigpick',
       h('button.bpart', { onclick: () => ctx.openSeries(s, { reason: c.why }), style: s.wide ? { backgroundImage: `url("${s.wide}")` } : null }),
       h('div.bptext',
-        h('div.bplabel', c.why || 'Recomendada para ti'),
+        h('div.bplabel', c.why || t('Recomendada para ti')),
         h('h3', s.title),
         h('div.bpsub', ui.ratingEl(s, { votes: true }), ui.alEl(s), ' ', (c.traits || []).join(' · ')),
         s.description ? h('p.bpdesc', s.description) : null,
         h('div.bpacts',
-          h('button.btn', { onclick: () => ctx.openSeries(s, { reason: c.why }) }, ui.icon('play', 16), 'Empezar'),
-          h('button.btn.ghost.icononly', { title: 'Me gusta', onclick: () => ctx.like(s) }, ui.icon('thumbUp', 16)),
-          h('button.btn.ghost.icononly', { title: 'No me interesa', onclick: async () => { await ctx.dislike(s); renderPick(); } }, ui.icon('thumbDown', 16)),
-          h('button.btn.ghost', { onclick: () => { offset++; renderPick(); } }, ui.icon('refresh', 14), 'Otra'))));
+          h('button.btn', { onclick: () => ctx.openSeries(s, { reason: c.why }) }, ui.icon('play', 16), t('Empezar')),
+          h('button.btn.ghost.icononly', { title: t('Me gusta'), onclick: () => ctx.like(s) }, ui.icon('thumbUp', 16)),
+          h('button.btn.ghost.icononly', { title: t('No me interesa'), onclick: async () => { await ctx.dislike(s); renderPick(); } }, ui.icon('thumbDown', 16)),
+          h('button.btn.ghost', { onclick: () => { offset++; renderPick(); } }, ui.icon('refresh', 14), t('Otra')))));
   }
 
   function miniCard(c) {
@@ -179,9 +180,9 @@ CRP.views.today = (ctx) => {
   let ranked = null;
   function renderPick() {
     const modes = [
-      { id: 'short', title: 'Un rato', sub: '~25 min', icon: 'clock' },
-      { id: 'evening', title: 'Una tarde', sub: '1–2 h', icon: 'calendar' },
-      { id: 'binge', title: 'Maratón', sub: 'serie entera', icon: 'sparkle' },
+      { id: 'short', title: t('Un rato'), sub: '~25 min', icon: 'clock' },
+      { id: 'evening', title: t('Una tarde'), sub: '1–2 h', icon: 'calendar' },
+      { id: 'binge', title: t('Maratón'), sub: t('serie entera'), icon: 'sparkle' },
     ];
     if (!modeChosen) mode = !ag || ag.series.some((s) => s.state === 'active' && s.next) ? 'short' : 'binge';
     const list = candidates(mode, ag, ranked && ranked.items).filter((c) => !(c.kind === 'series' && CRP.store.isHidden(c.s.id)));
@@ -189,14 +190,14 @@ CRP.views.today = (ctx) => {
     if (!list.length) {
       const waiting = !ag || !ranked;
       pickBlock.setBody(waiting ? ui.skeleton('ep', 1) : ui.empty(mode === 'short'
-        ? 'No tienes episodios pendientes de lo que sigues. Prueba «Maratón».'
-        : 'No hay propuestas para este plan. Prueba otro o ajusta «Para ti».'));
+        ? t('No tienes episodios pendientes de lo que sigues. Prueba «Maratón».')
+        : t('No hay propuestas para este plan. Prueba otro o ajusta «Para ti».')));
       return;
     }
     const i = offset % list.length;
     const main = list[i];
     const alts = list.filter((_, j) => j !== i).slice(0, 3);
-    pickBlock.setBody(bigCard(main), alts.length ? h('div.alts', h('span.lbl', 'O también:'), alts.map(miniCard)) : null);
+    pickBlock.setBody(bigCard(main), alts.length ? h('div.alts', h('span.lbl', t('O también:')), alts.map(miniCard)) : null);
   }
 
   // ---------------------------------------------------------- continue
@@ -212,10 +213,10 @@ CRP.views.today = (ctx) => {
       contBlock.setBody(ui.row(list.map(({ it, e }) => {
         const p = it.playhead && e.durationMs ? (it.playhead * 1000) / e.durationMs : 0;
         return ui.episodeCard(e, {
-          progress: p > 0.02 ? p : 0, badge: it.new ? 'NUEVO' : null, sub: p > 0.02 ? null : 'Siguiente episodio',
+          progress: p > 0.02 ? p : 0, badge: it.new ? t('NUEVO') : null, sub: p > 0.02 ? null : t('Siguiente episodio'),
           acts: [
-            { icon: 'check', title: 'Marcar como visto', run: () => ctx.markWatched(e) },
-            { icon: 'x', title: 'Quitar de Sigue viendo', cls: 'hide', run: () => ctx.hideContinue(e) },
+            { icon: 'check', title: t('Marcar como visto'), run: () => ctx.markWatched(e) },
+            { icon: 'x', title: t('Quitar de Sigue viendo'), cls: 'hide', run: () => ctx.hideContinue(e) },
           ],
         });
       }), { kind: 'ep' }));
@@ -229,8 +230,8 @@ CRP.views.today = (ctx) => {
     if (!ag) return;
     const today = new Date();
     const any = ag.week.some((d) => d.items.length);
-    if (!any) { weekBlock.setBody(ui.empty('Nada de lo que sigues se estrena esta semana.')); return; }
-    weekBlock.setSubtitle(`${ag.totals.pending} ep pendientes · ${fmtMinutes(ag.totals.minutes)}`);
+    if (!any) { weekBlock.setBody(ui.empty(t('Nada de lo que sigues se estrena esta semana.'))); return; }
+    weekBlock.setSubtitle(t('{n} ep pendientes · {time}', { n: ag.totals.pending, time: fmtMinutes(ag.totals.minutes) }));
     weekBlock.setBody(h('div.weekmini', ag.week.map((d) => h('div.wd' + (sameDay(d.date, today) ? '.today' : ''),
       h('b', `${DAYS[d.date.getDay()]} ${d.date.getDate()}`),
       d.items.slice(0, 4).map((it) => h('div.wdi.' + (it.watched ? 'watched' : it.t > Date.now() ? 'upcoming' : 'available'),
@@ -241,21 +242,22 @@ CRP.views.today = (ctx) => {
   // ------------------------------------------------------------- quick
   function renderQuick() {
     const dub = ctx.dub();
-    const dubWord = dub ? langName(dub).toLowerCase() : null;
+    const lang = dub ? CRP.util.langLower(dub) : null;
+    const audio = dub ? CRP.query.audioWords(dub) : null;   // words the parser understands
     const top = ranked && ranked.seeds.find((s) => s.kind === 'history');
     const index = cat.current();
     const season = index && index.tags && index.tags[0];
     const presets = [
-      dubWord && { label: `Cortas en ${dubWord}, bien valoradas`, q: `cortas en ${dubWord} buenas sin ver` },
-      { label: 'Joyas ocultas que no has visto', q: 'joyas ocultas sin ver' },
-      { label: 'Lo mejor según AniList que no has visto', q: 'anilist 85 sin ver' },
-      { label: 'Terminadas para hacer maratón', q: 'terminadas buenas sin ver' },
-      top && { label: `Como ${top.title}`, q: `como ${top.title} sin ver` },
-      season && { label: `${season.title}, mejor valoradas`, q: 'esta temporada buenas' },
-      { label: 'Películas ★ 4.5+', q: 'peliculas nota 4.5' },
-      { label: 'Clásicas imprescindibles', q: 'clasicas muy buenas' },
-      dubWord && { label: `En emisión con doblaje en ${dubWord}`, q: `en emision en ${dubWord}` },
-      { label: 'Sin romance ni comedia', q: 'sin romance ni comedia buenas' },
+      dub && { label: t('Cortas en {lang}, bien valoradas', { lang }), q: t('cortas {audio} buenas sin ver', { audio }) },
+      { label: t('Joyas ocultas que no has visto'), q: t('joyas ocultas sin ver') },
+      { label: t('Lo mejor según AniList que no has visto'), q: t('anilist 85 sin ver') },
+      { label: t('Terminadas para hacer maratón'), q: t('terminadas buenas sin ver') },
+      top && { label: t('Como {title}', { title: top.title }), q: t('como {title} sin ver', { title: top.title }) },
+      season && { label: t('{season}, mejor valoradas', { season: season.title }), q: t('esta temporada buenas') },
+      { label: t('Películas ★ 4.5+'), q: t('peliculas nota 4.5') },
+      { label: t('Clásicas imprescindibles'), q: t('clasicas muy buenas') },
+      dub && { label: t('En emisión con doblaje en {lang}', { lang }), q: t('en emision {audio}', { audio }) },
+      { label: t('Sin romance ni comedia'), q: t('sin romance ni comedia buenas') },
     ].filter(Boolean);
     quickBlock.setBody(h('div.quick', presets.map((p) => h('button.qbtn', { onclick: () => ctx.search({ text: p.q }) },
       ui.icon('search', 14), h('span', p.label), h('small', `“${p.q}”`)))));
@@ -267,7 +269,7 @@ CRP.views.today = (ctx) => {
     renderQuick();
     if (!ctx.loggedIn) {
       weekBlock.el.hidden = true;
-      pickBlock.setBody(ui.empty('Inicia sesión y aquí tendrás una propuesta concreta según el tiempo que tengas.', h('button.btn', { onclick: () => ctx.openOriginal() }, 'Iniciar sesión')));
+      pickBlock.setBody(ui.empty(t('Inicia sesión y aquí tendrás una propuesta concreta según el tiempo que tengas.'), h('button.btn', { onclick: () => ctx.openOriginal() }, t('Iniciar sesión'))));
       return;
     }
     weekBlock.setBody(ui.skeleton('ep', 1));
@@ -287,5 +289,5 @@ CRP.views.today = (ctx) => {
   CRP.catalog.load().then(() => { renderShelves(); renderMood(); }).catch(() => {});
   ctx.on('ext', 'today-mood', renderMood);
   start();
-  return { el, title: 'Hoy' };
+  return { el, title: t('Hoy') };
 };

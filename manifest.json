@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "Crunchyroll+",
   "short_name": "CR+",
-  "version": "0.5.1",
-  "description": "Convierte el inicio de Crunchyroll en una herramienta: búsqueda por filtros reales (doblaje, duración, nota…) en todo el catálogo, recomendaciones que controlas, agenda de estrenos y pendientes.",
+  "version": "0.6.0",
+  "description": "__MSG_description__",
   "permissions": [
     "storage",
     "unlimitedStorage",
@@ -50,6 +50,12 @@
       ],
       "js": [
         "src/core/util.js",
+        "src/core/i18n.js",
+        "src/i18n/en.js",
+        "src/i18n/es-419.js",
+        "src/i18n/it.js",
+        "src/i18n/de.js",
+        "src/i18n/fr.js",
         "src/core/diag.js",
         "src/core/model.js",
         "src/core/store.js",
@@ -83,5 +89,6 @@
         "https://www.crunchyroll.com/*"
       ]
     }
-  ]
+  ],
+  "default_locale": "es"
 }

@@ -34,7 +34,7 @@ CRP.profile = (() => {
     const j = await res.json();
     if (j.errors && !j.data) {
       const msg = j.errors.map((e) => e.message).join('; ');
-      throw new Error(/private/i.test(msg) ? 'La lista es privada: hazla pública en los ajustes de AniList.' : /not found/i.test(msg) ? 'No existe ese usuario en AniList.' : msg);
+      throw new Error(/private/i.test(msg) ? t('La lista es privada: hazla pública en los ajustes de AniList.') : /not found/i.test(msg) ? t('No existe ese usuario en AniList.') : msg);
     }
     return j.data;
   }
@@ -105,12 +105,12 @@ CRP.profile = (() => {
 
   async function importAniList(user, onStep) {
     await Promise.all([CRP.catalog.load(), CRP.ext.load()]);
-    onStep && onStep('Leyendo tu lista de AniList…');
+    onStep && onStep(t('Leyendo tu lista de AniList…'));
     const d = await gql(`query ($u: String) { MediaListCollection(userName: $u, type: ANIME) { user { name } lists { entries { mediaId status score(format: POINT_100) } } } }`, { u: user });
     const ST = { CURRENT: 'watching', REPEATING: 'completed', COMPLETED: 'completed', PAUSED: 'paused', DROPPED: 'dropped', PLANNING: 'planning' };
     const list = (d.MediaListCollection.lists || []).flatMap((l) => l.entries).map((e) => ({ id: e.mediaId, s: e.score || null, st: ST[e.status] || 'planning' }));
     const unmapped = [...new Set(list.filter((e) => !CRP.ext.crFromAniList(e.id)).map((e) => e.id))];
-    onStep && onStep(`Emparejando ${list.length} entradas con Crunchyroll…`);
+    onStep && onStep(t('Emparejando {n} entradas con Crunchyroll…', { n: list.length }));
     const extra = await linkUnmapped(unmapped, 'anilist');
     const rows = list.map((e) => ({ cr: CRP.ext.crFromAniList(e.id) || extra.get(e.id), s: e.s, st: e.st })).filter((r) => r.cr);
     data = { source: 'anilist', user: d.MediaListCollection.user.name, ts: Date.now(), total: list.length, items: aggregate(rows) };
@@ -120,13 +120,13 @@ CRP.profile = (() => {
 
   async function importMal(user, onStep) {
     await Promise.all([CRP.catalog.load(), CRP.ext.load()]);
-    onStep && onStep('Leyendo tu lista de MyAnimeList…');
+    onStep && onStep(t('Leyendo tu lista de MyAnimeList…'));
     const r = await chrome.runtime.sendMessage({ type: 'mal-list', user });
-    if (!r || r.error) throw new Error(r && r.error ? r.error : 'No se pudo leer la lista de MyAnimeList.');
+    if (!r || r.error) throw new Error(r && r.error ? t(r.error) : t('No se pudo leer la lista de MyAnimeList.'));
     const ST = { 1: 'watching', 2: 'completed', 3: 'paused', 4: 'dropped', 6: 'planning' };
     const list = r.items.map((e) => ({ mal: e.anime_id, s: e.score ? e.score * 10 : null, st: ST[e.status] || 'planning' }));
     const unmapped = [...new Set(list.filter((e) => !CRP.ext.crFromMal(e.mal)).map((e) => e.mal))];
-    onStep && onStep(`Emparejando ${list.length} entradas con Crunchyroll…`);
+    onStep && onStep(t('Emparejando {n} entradas con Crunchyroll…', { n: list.length }));
     const extra = await linkUnmapped(unmapped, 'mal');
     const rows = list.map((e) => ({ cr: CRP.ext.crFromMal(e.mal) || extra.get(e.mal), s: e.s, st: e.st })).filter((x) => x.cr);
     data = { source: 'mal', user, ts: Date.now(), total: list.length, items: aggregate(rows) };

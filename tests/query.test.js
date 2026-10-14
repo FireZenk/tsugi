@@ -6,7 +6,7 @@ const { load } = require('./env');
 const plain = (v) => JSON.parse(JSON.stringify(v));
 const eq = (a, b, msg) => assert.deepStrictEqual(plain(a), plain(b), msg);
 
-const { CRP } = load(['src/core/util.js', 'src/core/model.js', 'src/core/tags.js', 'src/core/query.js']);
+const { CRP } = load(['src/core/util.js', 'src/core/i18n.js', 'src/core/model.js', 'src/core/tags.js', 'src/core/query.js']);
 CRP.tags.setStudios(['MAPPA', 'Studio Pierrot', 'Kyoto Animation']);
 const titles = [{ id: 'F', title: 'Frieren: Beyond Journey’s End' }, { id: 'B', title: 'The Apothecary Diaries' }];
 const findTitle = (q) => titles.find((t) => CRP.util.norm(t.title).includes(CRP.util.norm(q)) && q.length > 2) || null;

@@ -13,8 +13,8 @@
 
   <label class="row toggle">
     <span>
-      <strong>Inicio rediseñado</strong>
-      <small>Sustituye la página principal de Crunchyroll</small>
+      <strong data-i18n>Inicio rediseñado</strong>
+      <small data-i18n>Sustituye la página principal de Crunchyroll</small>
     </span>
     <input type="checkbox" id="enabled">
     <i class="knob"></i>
@@ -22,22 +22,28 @@
 
   <div class="row">
     <span>
-      <strong>Catálogo indexado</strong>
+      <strong data-i18n>Catálogo indexado</strong>
       <small id="cat-info">—</small>
       <small id="ext-info"></small>
     </span>
-    <button id="reindex">Reindexar</button>
+    <button id="reindex" data-i18n>Reindexar</button>
   </div>
 
   <div class="row">
     <span>
-      <strong>Tu gusto</strong>
+      <strong data-i18n>Tu gusto</strong>
       <small id="taste-info">—</small>
     </span>
-    <button id="unhide">Restaurar 👎</button>
+    <button id="unhide" data-i18n>Restaurar 👎</button>
   </div>
 
-  <a class="open" href="https://www.crunchyroll.com/" target="_blank" rel="noopener">Abrir Crunchyroll</a>
+  <a class="open" href="https://www.crunchyroll.com/" target="_blank" rel="noopener" data-i18n>Abrir Crunchyroll</a>
+  <script src="../src/core/i18n.js"></script>
+  <script src="../src/i18n/en.js"></script>
+  <script src="../src/i18n/es-419.js"></script>
+  <script src="../src/i18n/it.js"></script>
+  <script src="../src/i18n/de.js"></script>
+  <script src="../src/i18n/fr.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

@@ -45,7 +45,7 @@ CRP.ui = (() => {
 
   function ratingEl(s, { votes = false } = {}) {
     if (s.rating == null) return null;
-    return h('span.rating', { title: `${s.rating} de media · ${s.votes.toLocaleString()} votos` },
+    return h('span.rating', { title: t('{r} de media · {n} votos', { r: s.rating, n: CRP.util.fmtNum(s.votes) }) },
       icon('star', 12), s.rating.toFixed(1), votes ? h('small', ` (${fmtVotes(s.votes)})`) : null);
   }
 
@@ -54,13 +54,13 @@ CRP.ui = (() => {
     const e = CRP.ext && CRP.ext.get(s.id);
     if (!e || e.s == null) return null;
     const band = e.s >= 85 ? '.top' : e.s >= 75 ? '.good' : e.s < 65 ? '.low' : '';
-    return h('span.al' + band, { title: `AniList: ${e.s}/100 · ${fmtVotes(e.u)} usuarios${e.c === 'title' ? ' · emparejado por título' : ''}` }, e.s);
+    return h('span.al' + band, { title: `AniList: ${e.s}/100 · ${t('{n} usuarios', { n: fmtVotes(e.u) })}${e.c === 'title' ? ' · ' + t('emparejado por título') : ''}` }, e.s);
   }
 
   function metaLine(s) {
     const bits = [];
-    if (s.kind === 'movie_listing') bits.push('Película');
-    else if (s.episodes) bits.push(`${s.episodes} ep`);
+    if (s.kind === 'movie_listing') bits.push(t('Película'));
+    else if (s.episodes) bits.push(t('{n} ep', { n: s.episodes }));
     if (s.year) bits.push(s.year);
     return h('div.meta', ratingEl(s), alEl(s), bits.length ? h('span', bits.join(' · ')) : null);
   }
@@ -78,10 +78,10 @@ CRP.ui = (() => {
     const acts = [];
     if (ctx && ctx.loggedIn && actions.includes('list')) {
       const on = ctx.inWatchlist(s.id);
-      acts.push(btn('list' + (on ? '.on' : ''), on ? 'Quitar de Mi lista' : 'Añadir a Mi lista', on ? 'check' : 'plus', () => ctx.toggleWatchlist(s)));
+      acts.push(btn('list' + (on ? '.on' : ''), on ? t('Quitar de Mi lista') : t('Añadir a Mi lista'), on ? 'check' : 'plus', () => ctx.toggleWatchlist(s)));
     }
-    if (ctx && actions.includes('like')) acts.push(btn('like' + (CRP.store.isLiked(s.id) ? '.on' : ''), 'Me gusta: recomiéndame más así', 'thumbUp', () => ctx.like(s)));
-    if (ctx && actions.includes('dislike')) acts.push(btn('dislike', 'No me interesa', 'thumbDown', () => ctx.dislike(s)));
+    if (ctx && actions.includes('like')) acts.push(btn('like' + (CRP.store.isLiked(s.id) ? '.on' : ''), t('Me gusta: recomiéndame más así'), 'thumbUp', () => ctx.like(s)));
+    if (ctx && actions.includes('dislike')) acts.push(btn('dislike', t('No me interesa'), 'thumbDown', () => ctx.dislike(s)));
 
     return h('a.card.poster', {
       href: M.seriesUrl(s), dataset: { sid: s.id }, title: s.title,
@@ -121,7 +121,7 @@ CRP.ui = (() => {
       ),
       h('div.title', e.seriesTitle || e.title),
       h('div.meta', h('span', [M.epLabel(e), e.kind !== 'movie' ? e.title : null].filter(Boolean).join(' — '))),
-      sub || left ? h('div.sub', sub || `Quedan ${left} min`) : null,
+      sub || left ? h('div.sub', sub || t('Quedan {n} min', { n: left })) : null,
       extra || null,
     );
   }
@@ -130,8 +130,8 @@ CRP.ui = (() => {
   function row(cards, { kind = 'poster' } = {}) {
     const track = h('div.track', cards);
     const scrollBy = (dir) => track.scrollBy({ left: dir * track.clientWidth * 0.85, behavior: 'smooth' });
-    const prev = h('button.arrow.prev', { title: 'Anterior', onclick: () => scrollBy(-1) }, icon('left', 22));
-    const next = h('button.arrow.next', { title: 'Siguiente', onclick: () => scrollBy(1) }, icon('right', 22));
+    const prev = h('button.arrow.prev', { title: t('Anterior'), onclick: () => scrollBy(-1) }, icon('left', 22));
+    const next = h('button.arrow.next', { title: t('Siguiente'), onclick: () => scrollBy(1) }, icon('right', 22));
     const update = () => {
       prev.hidden = track.scrollLeft < 8;
       next.hidden = track.scrollLeft + track.clientWidth >= track.scrollWidth - 8;
@@ -148,7 +148,7 @@ CRP.ui = (() => {
     if (!limit || cards.length <= limit) return el;
     const more = h('button.btn.more', {
       onclick: () => { el.replaceChildren(...cards); more.remove(); },
-    }, `Mostrar ${cards.length - limit} más`);
+    }, t('Mostrar {n} más', { n: cards.length - limit }));
     return h('div', el, more);
   }
 
@@ -179,8 +179,8 @@ CRP.ui = (() => {
 
   function errorBox(err, retry) {
     if (CRP.diag) CRP.diag.error('vista', err);
-    const msg = err && err.status === 401 ? 'Inicia sesión en Crunchyroll para ver esto.' : 'No se pudo cargar. Crunchyroll no respondió como esperábamos.';
-    return h('div.empty.err', h('p', msg), retry ? h('button.btn', { onclick: retry }, icon('refresh', 16), 'Reintentar') : null);
+    const msg = err && err.status === 401 ? t('Inicia sesión en Crunchyroll para ver esto.') : t('No se pudo cargar. Crunchyroll no respondió como esperábamos.');
+    return h('div.empty.err', h('p', msg), retry ? h('button.btn', { onclick: retry }, icon('refresh', 16), t('Reintentar')) : null);
   }
 
   function progressBar(p, label) {
@@ -250,10 +250,10 @@ CRP.ui = (() => {
   function setToastHost(el) { toastHost = el; }
   function toast(msg, { action, ms = 4000 } = {}) {
     if (!toastHost) return;
-    const t = h('div.toast', h('span', msg), action ? h('button', { onclick: () => { action.run(); t.remove(); } }, action.label) : null);
-    toastHost.append(t);
-    setTimeout(() => t.classList.add('out'), ms);
-    setTimeout(() => t.remove(), ms + 400);
+    const el = h('div.toast', h('span', msg), action ? h('button', { onclick: () => { action.run(); el.remove(); } }, action.label) : null);
+    toastHost.append(el);
+    setTimeout(() => el.classList.add('out'), ms);
+    setTimeout(() => el.remove(), ms + 400);
   }
 
   // Titled block inside a view.
@@ -265,7 +265,7 @@ CRP.ui = (() => {
     return {
       el, body,
       setBody: (...nodes) => body.replaceChildren(...nodes.flat().filter(Boolean)),
-      setSubtitle: (t) => { sub.textContent = t || ''; },
+      setSubtitle: (s) => { sub.textContent = s || ''; },
       setControls: (...nodes) => ctrl.replaceChildren(...nodes.flat().filter(Boolean)),
     };
   }

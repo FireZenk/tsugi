@@ -194,11 +194,11 @@ CRP.recs = (() => {
 
       const by = [...c.by].sort((a, b) => b[1] - a[1]).map(([s]) => s);
       const traits = [];
-      if (x.kind === 'movie_listing') traits.push('Película');
-      else if (x.episodes) traits.push(x.episodes <= 13 ? `Corta · ${x.episodes} ep` : x.episodes > 75 ? `Larga · ${x.episodes} ep` : `${x.episodes} ep`);
-      if (popN < 0.4 && q > 0.55) traits.push('Joya poco conocida');
-      if (o.dub && x.audio.includes(o.dub)) traits.push(`En ${CRP.util.langName(o.dub).toLowerCase()}`);
-      if (CRP.catalog.isAiring(x)) traits.push('En emisión');
+      if (x.kind === 'movie_listing') traits.push(t('Película'));
+      else if (x.episodes) traits.push(x.episodes <= 13 ? t('Corta · {n} ep', { n: x.episodes }) : x.episodes > 75 ? t('Larga · {n} ep', { n: x.episodes }) : t('{n} ep', { n: x.episodes }));
+      if (popN < 0.4 && q > 0.55) traits.push(t('Joya poco conocida'));
+      if (o.dub && x.audio.includes(o.dub)) traits.push(t('En {lang}', { lang: CRP.util.langLower(o.dub) }));
+      if (CRP.catalog.isAiring(x)) traits.push(t('En emisión'));
       out.push({
         series: x,
         score,
@@ -236,11 +236,16 @@ CRP.recs = (() => {
     const parts = [];
     if (r.because.length) {
       const b0 = r.because[0];
-      const names = r.because.map((b) => b.title).join(' y ');
-      const verb = b0.stars ? `Porque le diste ${b0.stars}★ a` : b0.score != null ? `Porque le diste un ${Math.round(b0.score / 10)} a` : b0.liked ? 'Porque te gustó' : 'Porque viste';
-      parts.push(`${verb} ${names}${r.moreSeeds ? ` (+${r.moreSeeds})` : ''}`);
+      const and = (list) => (list.length > 1 ? t('{a} y {b}', { a: list[0], b: list[1] }) : list[0]);
+      const names = and(r.because.map((b) => b.title));
+      const line = b0.stars ? t('Porque le diste {stars}★ a {names}', { stars: b0.stars, names })
+        : b0.score != null ? t('Porque le diste un {n} a {names}', { n: Math.round(b0.score / 10), names })
+          : b0.liked ? t('Porque te gustó {names}', { names }) : t('Porque viste {names}', { names });
+      parts.push(line + (r.moreSeeds ? ` (+${r.moreSeeds})` : ''));
     } else if (r.genres.length) {
-      parts.push(`Encaja con tu gusto por ${r.genres.map(M.genreTitle).join(' y ').toLowerCase()}`);
+      const g = r.genres.map(M.genreTitle);
+      const genres = g.length > 1 ? t('{a} y {b}', { a: g[0], b: g[1] }) : g[0];
+      parts.push(t('Encaja con tu gusto por {genres}', { genres: CRP.i18n.current() === 'de' ? genres : genres.toLowerCase() }));
     }
     return parts.join(' · ');
   }

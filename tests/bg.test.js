@@ -15,6 +15,8 @@ function boot() {
   const sandbox = {
     console, setTimeout, URL, Date, JSON, Map, Set, Promise, Math,
     btoa: (s) => Buffer.from(s).toString('base64'),
+    navigator: { language: 'es-ES' },
+    importScripts: (...files) => files.forEach((f) => vm.runInContext(fs.readFileSync(path.join(__dirname, '..', 'src', f), 'utf8'), sandbox)),
     chrome: {
       storage: { local: area('local'), sync: area('sync') },
       runtime: { onInstalled: on('installed'), onStartup: on('startup'), onMessage: on('message') },

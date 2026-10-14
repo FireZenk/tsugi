@@ -2,7 +2,7 @@ const test = require('node:test');
 const assert = require('node:assert');
 const { load } = require('./env');
 
-const { CRP } = load(['src/core/util.js']);
+const { CRP } = load(['src/core/util.js', 'src/core/i18n.js']);
 const U = CRP.util;
 
 test('home route: root, any language prefix, and /discover', () => {

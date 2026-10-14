@@ -27,35 +27,35 @@ CRP.views.foryou = (ctx) => {
       onInput: (v) => { tune[key] = v; persist(); rerank(); },
     });
     fill(panel,
-      h('h3', ui.icon('sparkle', 16), 'Ajusta tus recomendaciones'),
-      h('p.hint', 'Los cambios se aplican al momento. Doble clic en un deslizador lo centra.'),
+      h('h3', ui.icon('sparkle', 16), t('Ajusta tus recomendaciones')),
+      h('p.hint', t('Los cambios se aplican al momento. Doble clic en un deslizador lo centra.')),
       h('div.knobs',
-        knob('pop', 'Joyas ocultas', 'Populares'),
-        knob('len', 'Cortas', 'Largas'),
-        knob('era', 'Clásicas', 'Recientes'),
-        knob('explore', 'Lo de siempre', 'Descubrir', 0, 1)),
-      dub ? ui.toggle(`Solo con audio en ${langName(dub).toLowerCase()}`, tune.dubOnly, (v) => { tune.dubOnly = v; persist(); rerank(); }) : null,
+        knob('pop', t('Joyas ocultas'), t('Populares')),
+        knob('len', t('Cortas'), t('Largas')),
+        knob('era', t('Clásicas'), t('Recientes')),
+        knob('explore', t('Lo de siempre'), t('Descubrir'), 0, 1)),
+      dub ? ui.toggle(t('Solo con audio en {lang}', { lang: CRP.util.langLower(dub) }), tune.dubOnly, (v) => { tune.dubOnly = v; persist(); rerank(); }) : null,
 
-      h('h4', 'Aprende de'),
+      h('h4', t('Aprende de')),
       h('p.hint', CRP.profile.active()
-        ? 'Tu historial y tus mejores notas de tu lista importada (★). Desactiva lo que no represente tu gusto.'
-        : 'Tu historial, ordenado por cuánto y cuándo lo viste. Desactiva lo que no represente tu gusto. (Importa tu lista de AniList/MAL en Ajustes para afinar mucho más.)'),
+        ? t('Tu historial y tus mejores notas de tu lista importada (★). Desactiva lo que no represente tu gusto.')
+        : t('Tu historial, ordenado por cuánto y cuándo lo viste. Desactiva lo que no represente tu gusto. (Importa tu lista de AniList/MAL en Ajustes para afinar mucho más.)')),
       h('div.seeds', seeds.map((s) => {
         const muted = store.isMuted(s.id);
         return h('button.seed' + (muted ? '.off' : ''), {
-          title: muted ? 'No se usa (clic para usarla)' : 'Se usa para recomendarte (clic para ignorarla)',
+          title: muted ? t('No se usa (clic para usarla)') : t('Se usa para recomendarte (clic para ignorarla)'),
           onclick: async () => { await store.setMuted(s.id, !muted); rerank(); },
         }, s.kind === 'list' ? '📌 ' : s.kind === 'import' ? `★${Math.round(s.s / 10)} ` : '', s.title);
       })),
       likes.length ? h('div',
-        h('h4', 'Te gustan'),
-        h('div.seeds', likes.map((l) => h('button.seed.liked', { title: 'Quitar el me gusta', onclick: async () => { await store.unlike(l.id); ctx.emit('taste'); } }, '👍 ', l.title)))) : null,
-      disliked ? h('p.hint', `${disliked} descartada${disliked === 1 ? '' : 's'} con 👎 (se usan para evitar parecidas). Gestiónalas en Ajustes.`) : null,
+        h('h4', t('Te gustan')),
+        h('div.seeds', likes.map((l) => h('button.seed.liked', { title: t('Quitar el me gusta'), onclick: async () => { await store.unlike(l.id); ctx.emit('taste'); } }, '👍 ', l.title)))) : null,
+      disliked ? h('p.hint', disliked === 1 ? t('1 descartada con 👎 (se usa para evitar parecidas). Gestiónalas en Ajustes.') : t('{n} descartadas con 👎 (se usan para evitar parecidas). Gestiónalas en Ajustes.', { n: disliked })) : null,
 
       r.profile.length ? h('div',
-        h('h4', 'Tu perfil de géneros'),
+        h('h4', t('Tu perfil de géneros')),
         h('div.profile', r.profile.map((g) => h('div.prow', h('span', M.genreTitle(g.id)), h('div.dbar', h('i', { style: { width: Math.round(g.w * 100) + '%' } })))))) : null,
-      h('button.btn.ghost.small', { onclick: async () => { tune = { ...store.DEFAULTS.tune }; await store.set({ tune }); rerank(); } }, 'Restablecer mandos'),
+      h('button.btn.ghost.small', { onclick: async () => { tune = { ...store.DEFAULTS.tune }; await store.set({ tune }); rerank(); } }, t('Restablecer mandos')),
     );
   }
 
@@ -68,10 +68,10 @@ CRP.views.foryou = (ctx) => {
     });
     renderPanel(r);
     fill(head, h('div.qline',
-      h('div.qhelp', 'Cada recomendación dice por qué está aquí. Usa 👍 y 👎 para afinar.'),
-      h('button.btn.ghost.small', { title: 'Vuelve a leer tu historial', onclick: () => { ctx.resetGraph(); start(); } }, ui.icon('refresh', 14), 'Recalcular')));
+      h('div.qhelp', t('Cada recomendación dice por qué está aquí. Usa 👍 y 👎 para afinar.')),
+      h('button.btn.ghost.small', { title: t('Vuelve a leer tu historial'), onclick: () => { ctx.resetGraph(); start(); } }, ui.icon('refresh', 14), t('Recalcular'))));
     if (!r.items.length) {
-      fill(results, ui.empty('Nada con estos mandos. Prueba a moverlos hacia el centro.'));
+      fill(results, ui.empty(t('Nada con estos mandos. Prueba a moverlos hacia el centro.')));
       return;
     }
     fill(results, ui.grid(r.items.map((it) => ui.posterCard(it.series, {
@@ -84,13 +84,13 @@ CRP.views.foryou = (ctx) => {
 
   async function start() {
     if (!ctx.loggedIn) {
-      fill(results, ui.empty('Inicia sesión para recomendaciones basadas en tu historial.', h('button.btn', { onclick: () => ctx.openOriginal() }, 'Iniciar sesión')));
+      fill(results, ui.empty(t('Inicia sesión para recomendaciones basadas en tu historial.'), h('button.btn', { onclick: () => ctx.openOriginal() }, t('Iniciar sesión'))));
       return;
     }
-    const bar = ui.progressBar(0.03, 'Leyendo tu historial…');
-    fill(results, h('div.indexing', h('p', 'Preparando recomendaciones a partir de lo que ves de verdad…'), bar));
-    const offCat = CRP.catalog.onProgress((p) => bar.set(p * 0.5, 'Indexando catálogo…'));
-    const offG = ctx.onGraphProgress((p) => bar.set(0.5 + p * 0.5, 'Buscando parecidas a tus series…'));
+    const bar = ui.progressBar(0.03, t('Leyendo tu historial…'));
+    fill(results, h('div.indexing', h('p', t('Preparando recomendaciones a partir de lo que ves de verdad…')), bar));
+    const offCat = CRP.catalog.onProgress((p) => bar.set(p * 0.5, t('Indexando catálogo…')));
+    const offG = ctx.onGraphProgress((p) => bar.set(0.5 + p * 0.5, t('Buscando parecidas a tus series…')));
     try {
       graph = await ctx.data.graph();
     } catch (e) {
@@ -106,5 +106,5 @@ CRP.views.foryou = (ctx) => {
   CRP.catalog.onUpdate(() => el.isConnected && rerank());
   start();
 
-  return { el, title: 'Para ti' };
+  return { el, title: t('Para ti') };
 };

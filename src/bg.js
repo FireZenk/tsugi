@@ -6,6 +6,9 @@
 //     AniList's airing times ("should be on Crunchyroll by now").
 //  2. MyAnimeList list import: myanimelist.net has no CORS, so the page asks us.
 
+// UI strings: same dictionaries as the pages (language from settings or the site's)
+importScripts('core/i18n.js', 'i18n/en.js', 'i18n/es-419.js', 'i18n/it.js', 'i18n/de.js', 'i18n/fr.js');
+
 const CR = 'https://www.crunchyroll.com';
 const POLL_MIN = 15;
 const local = chrome.storage.local;
@@ -30,7 +33,7 @@ async function malList(user) {
   for (let offset = 0; offset < 6000; offset += 300) {
     const res = await fetch(`https://myanimelist.net/animelist/${encodeURIComponent(user)}/load.json?status=7&offset=${offset}`, { credentials: 'omit' });
     if (res.status === 400 || res.status === 404) throw new Error('No existe ese usuario en MyAnimeList o su lista es privada.');
-    if (!res.ok) throw new Error('MyAnimeList respondió ' + res.status);
+    if (!res.ok) throw new Error(t('MyAnimeList respondió {n}', { n: res.status }));
     const page = await res.json();
     items.push(...page.map((e) => ({ anime_id: e.anime_id, score: e.score, status: e.status })));
     if (page.length < 300) break;
@@ -42,7 +45,7 @@ async function malList(user) {
 // -------------------------------------------------------------- notifications
 async function settings() {
   const s = (await chrome.storage.sync.get('settings')).settings || {};
-  return { enabled: s.enabled !== false, notify: s.notify !== false };
+  return { enabled: s.enabled !== false, notify: s.notify !== false, uiLang: s.uiLang || 'auto' };
 }
 
 let token = null;
@@ -61,19 +64,31 @@ async function anonToken() {
 }
 
 async function newlyAdded(locale) {
-  const t = await anonToken();
+  const bearer = await anonToken();
   const res = await fetch(`${CR}/content/v2/discover/browse?type=episode&sort_by=newly_added&n=100&locale=${locale}`, {
-    credentials: 'omit', headers: { Authorization: 'Bearer ' + t },
+    credentials: 'omit', headers: { Authorization: 'Bearer ' + bearer },
   });
   if (!res.ok) throw Object.assign(new Error('browse ' + res.status), { status: res.status });
   return (await res.json()).data || [];
 }
 
-const LANG = { 'ja-JP': '', 'es-ES': ' (castellano)', 'es-419': ' (latino)', 'en-US': ' (inglés)', 'pt-BR': ' (portugués)', 'fr-FR': ' (francés)', 'de-DE': ' (alemán)', 'it-IT': ' (italiano)' };
+// audio suffix for the notification line ("· T3 · E4 (castellano)"); none for Japanese
+const LANG = { 'es-ES': 'Castellano', 'es-419': 'Latino', 'en-US': 'Inglés', 'pt-BR': 'Portugués (BR)', 'fr-FR': 'Francés', 'de-DE': 'Alemán', 'it-IT': 'Italiano' };
+const langSuffix = (code) => {
+  if (!LANG[code]) return '';
+  const name = t(LANG[code]);
+  return ` (${['en', 'de'].includes(CRP.i18n.current()) ? name : name.charAt(0).toLowerCase() + name.slice(1)})`;
+};
+const epLine = (season, ep, title) => `${t('T{n}', { n: season })} · ${t('E{n}', { n: ep })}${title ? ' — ' + title : ''}`;
+
+async function useLanguage(st, watch) {
+  CRP.i18n.setLang(st.uiLang !== 'auto' ? st.uiLang : CRP.i18n.fromLocale(watch && watch.locale));
+}
 
 async function poll(force = false) {
   const st = await settings();
   const { 'notify:watch': watch, 'notify:seen': seenArr = [] } = await local.get(['notify:watch', 'notify:seen']);
+  await useLanguage(st, watch);
   if (!st.enabled || (!st.notify && !force) || !watch || !watch.items || !watch.items.length) {
     return setStatus({ ok: true, skipped: true, reason: !watch ? 'sin lista de seguimiento (abre el inicio de Crunchyroll una vez)' : 'avisos desactivados' });
   }
@@ -96,7 +111,7 @@ async function poll(force = false) {
       fresh.push({
         id: e.id,
         title: m.series_title || f.title,
-        line: `T${m.season_number || 1} · E${m.episode_number ?? '?'}${e.title ? ' — ' + e.title : ''}${LANG[m.audio_locale] ?? ''}`,
+        line: epLine(m.season_number || 1, m.episode_number ?? '?', e.title) + langSuffix(m.audio_locale),
         url: `${CR}${watch.prefix || ''}/watch/${e.id}/${e.slug_title || ''}`,
       });
     }
@@ -109,7 +124,7 @@ async function poll(force = false) {
       const key = `al:${f.id}:${f.nx.ep}`;
       if (seen.has(key)) continue;
       seen.add(key);
-      fresh.push({ id: key, title: f.title, line: `Episodio ${f.nx.ep}: debería estar ya en Crunchyroll`, url: `${CR}${watch.prefix || ''}/series/${f.id}` });
+      fresh.push({ id: key, title: f.title, line: t('Episodio {n}: debería estar ya en Crunchyroll', { n: f.nx.ep }), url: `${CR}${watch.prefix || ''}/series/${f.id}` });
     }
     error = String(err.message || err);
   }
@@ -132,14 +147,14 @@ async function notify(list) {
     const id = 'crp-many-' + Date.now();
     urls[id] = list[0].url.replace(/\/watch\/.*/, '/');
     chrome.notifications.create(id, {
-      type: 'list', iconUrl: 'icons/icon128.png', title: `${list.length} episodios nuevos de lo que sigues`, message: '',
+      type: 'list', iconUrl: 'icons/icon128.png', title: t('{n} episodios nuevos de lo que sigues', { n: list.length }), message: '',
       items: list.slice(0, 5).map((x) => ({ title: x.title, message: x.line })), contextMessage: 'Crunchyroll+',
     });
   } else {
     for (const x of list) {
       const id = 'crp-' + x.id;
       urls[id] = x.url;
-      chrome.notifications.create(id, { type: 'basic', iconUrl: 'icons/icon128.png', title: `Nuevo: ${x.title}`, message: x.line, contextMessage: 'Crunchyroll+' });
+      chrome.notifications.create(id, { type: 'basic', iconUrl: 'icons/icon128.png', title: t('Nuevo: {title}', { title: x.title }), message: x.line, contextMessage: 'Crunchyroll+' });
     }
   }
   const keys = Object.keys(urls);
@@ -148,10 +163,12 @@ async function notify(list) {
 }
 
 async function test() {
-  const { 'notify:urls': urls = {} } = await local.get('notify:urls');
+  const { 'notify:urls': urls = {}, 'notify:watch': watch } = await local.get(['notify:urls', 'notify:watch']);
+  await useLanguage(await settings(), watch);
   urls['crp-test'] = CR + '/';
   await local.set({ 'notify:urls': urls });
-  chrome.notifications.create('crp-test', { type: 'basic', iconUrl: 'icons/icon128.png', title: 'Así se verán los avisos', message: 'Nuevo: Los diarios de la boticaria · T3 · E4 (castellano)', contextMessage: 'Crunchyroll+' });
+  const message = `${t('Nuevo: {title}', { title: t('Los diarios de la boticaria') })} · ${epLine(3, 4)}${langSuffix('es-ES')}`;
+  chrome.notifications.create('crp-test', { type: 'basic', iconUrl: 'icons/icon128.png', title: t('Así se verán los avisos'), message, contextMessage: 'Crunchyroll+' });
 }
 
 chrome.notifications.onClicked.addListener(async (id) => {

@@ -12,6 +12,7 @@ CRP.store = (() => {
     tune: { pop: 0, len: 0, era: 0, explore: 0.3, dubOnly: false },
     rateToCR: true,        // also send star ratings to Crunchyroll
     dataSaver: true,       // don't load the original (hidden) home page
+    uiLang: 'auto',        // interface language ('auto' = from the site language)
   };
 
   let settings = null;
