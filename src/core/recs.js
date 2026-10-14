@@ -69,6 +69,14 @@ CRP.recs = (() => {
     const importSeeds = imported.filter((e) => e.s != null && e.s >= 75 && (e.st === 'completed' || e.st === 'watching'))
       .sort((a, b) => b.s - a.s).slice(0, 16)
       .map((e) => ({ id: e.id, title: titleOf(e.id), w: 0, s: e.s, stars: e.stars || null, kind: 'import' }));
+    // Completed/watching without a score still says something (most people rarely score):
+    // a weaker seed, best-rated shows first.
+    const strongIds = new Set(importSeeds.map((x) => x.id));
+    const quality = (id) => { const x = CRP.catalog.get(id); const q = x && CRP.ext.quality(x); return q == null ? 0 : q; };
+    const weakSeeds = imported.filter((e) => e.s == null && (e.st === 'completed' || e.st === 'watching') && !strongIds.has(e.id) && CRP.catalog.get(e.id))
+      .sort((a, b) => quality(b.id) - quality(a.id)).slice(0, 10)
+      .map((e) => ({ id: e.id, title: titleOf(e.id), w: 0, s: null, kind: 'import' }));
+    importSeeds.push(...weakSeeds);
     const importNeg = imported.filter((e) => (e.s != null && e.s <= 50) || e.st === 'dropped').slice(0, 16).map((e) => e.id);
     const negatives = [...store.hiddenList().slice(0, 20).map((x) => x.id), ...importNeg];
 
@@ -126,7 +134,7 @@ CRP.recs = (() => {
       .filter((s) => !store.isMuted(s.id) && !store.isHidden(s.id) && (s.kind !== 'like' || store.isLiked(s.id)))
       .concat(store.likedList().filter((l) => !graph.seeds.some((s) => s.id === l.id)).map((l) => ({ id: l.id, title: l.title, kind: 'like' })))
       .map((s) => (s.kind === 'like' ? { ...s, w: autoMax * 1.15 }
-        : s.kind === 'import' ? { ...s, w: autoMax * (0.6 + 0.8 * (s.s - 75) / 25) } : s));
+        : s.kind === 'import' ? { ...s, w: s.s == null ? autoMax * 0.5 : autoMax * (0.6 + 0.8 * (s.s - 75) / 25) } : s));
     const profile = genreProfile(seeds, catalog);
     const negatives = [...store.hiddenList().map((x) => x.id), ...(graph.importNeg || [])];
 

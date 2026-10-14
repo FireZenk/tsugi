@@ -53,17 +53,34 @@ CRP.profile = (() => {
     return null;
   }
 
-  // AniList ids (or MAL ids) the local map doesn't know -> Crunchyroll ids via links.
+  // AniList ids (or MAL ids) the local map doesn't know -> Crunchyroll ids, first via
+  // AniList's links to Crunchyroll, then by exact title + launch year (±1) against the
+  // catalog. Links to a *related* entry (sequel, film) are deliberately not used: they'd
+  // mark e.g. "Dragon Ball Super" as seen because you watched "Dragon Ball Z".
+  const flat = (s) => CRP.util.norm(s).replace(/[^a-z0-9]/g, '');
   async function linkUnmapped(ids, field) {
     const index = CRP.catalog.current();
     if (!index || !ids.length) return new Map();
     const bySlug = new Map(index.items.map((x) => [x.slug.toLowerCase(), x.id]));
+    const byTitle = new Map();
+    for (const x of index.items) {
+      for (const k of [flat(x.title), flat(x.slug.replace(/-/g, ' '))]) {
+        if (k.length > 2) (byTitle.get(k) || byTitle.set(k, []).get(k)).push(x);
+      }
+    }
     const out = new Map();
     const arg = field === 'mal' ? 'idMal_in' : 'id_in';
     for (let i = 0; i < ids.length; i += 50) {
-      const d = await gql(`query ($ids: [Int]) { Page(perPage: 50) { media(${arg}: $ids, type: ANIME) { id idMal externalLinks { url } } } }`, { ids: ids.slice(i, i + 50) });
+      const d = await gql(`query ($ids: [Int]) { Page(perPage: 50) { media(${arg}: $ids, type: ANIME) { id idMal format title { english romaji } synonyms startDate { year } externalLinks { url } } } }`, { ids: ids.slice(i, i + 50) });
       for (const m of (d.Page && d.Page.media) || []) {
-        const cr = crIdFromLinks(m.externalLinks, bySlug);
+        let cr = crIdFromLinks(m.externalLinks, bySlug);
+        if (!cr) {
+          const names = [m.title.english, m.title.romaji, ...(m.synonyms || [])].map(flat).filter((n) => n.length > 2);
+          const hits = [...new Set(names.flatMap((n) => byTitle.get(n) || []))]
+            .filter((x) => !x.year || !m.startDate.year || Math.abs(x.year - m.startDate.year) <= 1)
+            .filter((x) => (m.format === 'MOVIE') === (x.kind === 'movie_listing'));
+          if (hits.length === 1) cr = hits[0].id;
+        }
         if (cr && index.byId.has(cr)) out.set(field === 'mal' ? m.idMal : m.id, cr);
       }
       await new Promise((r) => setTimeout(r, 2100));

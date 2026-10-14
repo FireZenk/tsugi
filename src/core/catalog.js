@@ -11,7 +11,7 @@ CRP.catalog = (() => {
   const store = CRP.store;
   const { pool, contentLocale, norm } = CRP.util;
   const TTL = 24 * 3600 * 1000;
-  const VERSION = 2;
+  const VERSION = 3; // 3: fill titles missed by popularity paging
   const DAY = 86400000;
   const AIRING_DAYS = 14;
 
@@ -45,6 +45,15 @@ CRP.catalog = (() => {
       return r.data || [];
     });
 
+    // Popularity order shifts while paging, so a few titles slip between pages. If any
+    // are missing, one alphabetical pass (stable order) fills them in, ranked last.
+    let raw = [first.data || [], ...rest.map((x) => x || [])].flat();
+    const have = new Set(raw.map((x) => x && x.id));
+    if (have.size < total) {
+      const alpha = await pool(starts.concat([0]), 4, async (start) => (await api.browse({ sort_by: 'alphabetical', n: PAGE, start })).data || []);
+      raw = raw.concat(alpha.flat().filter((x) => x && !have.has(x.id)));
+    }
+
     // Season tags (current + 3 previous) so "Otoño 2026" can be a facet.
     let tags = [];
     const tagMap = new Map();
@@ -62,7 +71,7 @@ CRP.catalog = (() => {
 
     const seen = new Set();
     const items = [];
-    for (const it of [first.data || [], ...rest.map((x) => x || [])].flat()) {
+    for (const it of raw) {
       if (!it || !it.id || seen.has(it.id)) continue;
       seen.add(it.id);
       const rec = M.record(it, items.length);

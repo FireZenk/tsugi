@@ -23,7 +23,7 @@ const items = [
   item('E', { title: 'Joya Rara', genres: ['drama'], eps: 13, pop: 4, quality: 4.75, votes: 400 }),
 ];
 items[3].kind = 'movie_listing';
-const snap = { v: 2, ts: now, locale: 'es-ES', total: items.length, tags: [{ id: 'fall-2026', title: 'Otoño 2026' }], items };
+const snap = { v: 3, ts: now, locale: 'es-ES', total: items.length, tags: [{ id: 'fall-2026', title: 'Otoño 2026' }], items };
 
 const env = load(['src/core/util.js', 'src/core/model.js', 'src/core/store.js', 'src/core/api.js', 'src/core/external.js', 'src/core/tags.js', 'src/core/catalog.js'],
   { storage: { 'catalog:es-ES': snap } });
