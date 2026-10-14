@@ -367,7 +367,10 @@ CRP.app = (() => {
         diagSection(),
         h('h4', t('Ahorro de datos')),
         h('p.hint', t('En el inicio no se carga la página original de Crunchyroll (unos 4 MB de scripts, imágenes y rastreadores que quedarían ocultos detrás de CR+). Si alguna vez falla la sesión, desactívalo.')),
-        ui.toggle(t('Ahorrar datos en el inicio'), s.dataSaver !== false, (v) => store.set({ dataSaver: v })),
+        ui.toggle(t('Ahorrar datos en el inicio'), s.dataSaver !== false, (v) => { CRP.saver.reset(); store.set({ dataSaver: v }); }),
+        s.dataSaver !== false && CRP.saver.broken() ? h('div',
+          h('p.hint.warn', t('En pausa: Crunchyroll no dio tu sesión sin cargar su página ({reason}). Se volverá a probar solo dentro de unos días.', { reason: CRP.saver.reason() || '?' })),
+          h('button.btn.ghost.small', { onclick: () => { CRP.saver.reset(); ui.toast(t('Se probará en la próxima visita al inicio.')); render(); } }, t('Probar de nuevo'))) : null,
         h('h4', t('Datos')),
         h('div.btns',
           h('button.btn', { onclick: async () => { close(); ui.toast(t('Reindexando el catálogo…')); await CRP.catalog.refresh(); ui.toast(t('Catálogo actualizado')); } }, ui.icon('refresh', 16), t('Reindexar catálogo')),
@@ -576,21 +579,19 @@ CRP.app = (() => {
       try {
         auth = await api.session();
       } catch (e) {
+        // The data saver stopped the original page and our own token requests failed:
+        // load the page as before (the saver stays off for a while).
+        if (api.isPageless() && CRP.saver.fail('error: ' + ((e && e.message) || e))) return;
         fill(main, ui.errorBox(e, start));
         return;
       }
       if (disposed) return;
-      // Data saver stopped the original page and our own token refresh came back
-      // anonymous: maybe we've never seen this browser's session. Load the original once
-      // (the page captures it), then the saver works on every later visit.
+      // Anonymous without the page: if you were signed in on earlier visits, the saver's
+      // own token refresh didn't get the session (same fallback); if we've never seen
+      // this browser's session, let the original page tell us once.
       if (auth.anonymous && api.isPageless()) {
-        let state = null;
-        try { state = sessionStorage.getItem('crp-saver-retry'); } catch (e) { /* ignore */ }
-        if (state !== 'used') {
-          try { sessionStorage.setItem('crp-saver-retry', 'pending'); } catch (e) { /* ignore */ }
-          location.reload();
-          return;
-        }
+        if (CRP.saver.hadAccount() || await CRP.store.localGet('tokenTemplate')) { if (CRP.saver.fail('anon')) return; }
+        else if (!CRP.saver.known() && CRP.saver.checkOnce()) return;
       }
       main.replaceChildren();
       views = {};

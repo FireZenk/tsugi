@@ -180,7 +180,9 @@ CRP.ui = (() => {
   function errorBox(err, retry) {
     if (CRP.diag) CRP.diag.error('vista', err);
     const msg = err && err.status === 401 ? t('Inicia sesión en Crunchyroll para ver esto.') : t('No se pudo cargar. Crunchyroll no respondió como esperábamos.');
-    return h('div.empty.err', h('p', msg), retry ? h('button.btn', { onclick: retry }, icon('refresh', 16), t('Reintentar')) : null);
+    // without the original page (data saver), offer to load it
+    const saver = CRP.api && CRP.api.isPageless() ? h('button.btn.ghost', { onclick: () => CRP.saver.fail('manual') }, t('Cargar sin ahorro de datos')) : null;
+    return h('div.empty.err', h('p', msg), h('div.btns.row', retry ? h('button.btn', { onclick: retry }, icon('refresh', 16), t('Reintentar')) : null, saver));
   }
 
   function progressBar(p, label) {

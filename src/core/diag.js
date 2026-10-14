@@ -69,7 +69,11 @@ CRP.diag = (() => {
       page: location.pathname,
       locale: CRP.util.contentLocale(),
       dub: st.dubLocale(),
-      dataSaver: { setting: st.get().dataSaver !== false, pagelessThisLoad: CRP.api.isPageless() },
+      dataSaver: {
+        setting: st.get().dataSaver !== false, pagelessThisLoad: CRP.api.isPageless(),
+        paused: CRP.saver.broken() ? { since: new Date(CRP.saver.since()).toISOString(), reason: CRP.saver.reason() } : null,
+        hadAccount: CRP.saver.hadAccount(), tokenTemplate: await CRP.api.templateInfo().catch(() => null),
+      },
       auth: { ...state },
       catalog: cat ? { items: cat.items.length, ts: new Date(cat.ts).toISOString() } : null,
       anilist: CRP.ext ? CRP.ext.stats() : null,

@@ -23,16 +23,14 @@
   // scripts, carousels and trackers just to sit hidden behind CR+. Stop the document
   // right here (document_start) and let CR+ get the session itself. Settings are async,
   // so their on/off state is mirrored to localStorage to decide synchronously.
+  // If CR+ couldn't get the session without the page, it turned the saver off for a
+  // week (CRP.saver.fail) and this load runs the original app as before.
   const flag = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
-  const retry = (() => { try { return sessionStorage.getItem('crp-saver-retry'); } catch (e) { return null; } })();
-  if (wanted() && flag('crp-enabled') !== '0' && flag('crp-datasaver') !== '0' && retry !== 'pending') {
+  if (wanted() && flag('crp-enabled') !== '0' && flag('crp-datasaver') !== '0' && !CRP.saver.broken() && !CRP.saver.skipThisLoad()) {
     window.stop();
     CRP.api.setPageless(true);
     if (!document.head) root.prepend(document.createElement('head'));
     document.title = 'Crunchyroll';
-  } else if (retry === 'pending') {
-    // this load runs the original app once so its session can be captured
-    try { sessionStorage.setItem('crp-saver-retry', 'used'); } catch (e) { /* ignore */ }
   }
   const mirror = (s) => {
     try {

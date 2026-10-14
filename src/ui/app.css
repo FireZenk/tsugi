@@ -497,3 +497,7 @@ a.card:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; bo
 .kbdbox h3 { margin-bottom: 12px; font-size: 16px; }
 .hrow { display: flex; align-items: center; gap: 14px; padding: 5px 0; font-size: 13.5px; color: var(--muted); }
 .hrow kbd { min-width: 88px; text-align: center; font: 700 12px ui-monospace, monospace; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--line); background: var(--panel-2); color: var(--text); }
+
+/* error box: retry + "load without data saver" */
+.empty.err .btns.row { display: flex; flex-direction: row; flex-wrap: wrap; gap: 8px; }
+.hint.warn { color: var(--accent-2); }

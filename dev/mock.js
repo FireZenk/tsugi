@@ -247,6 +247,8 @@
     if (p === '/auth/v1/token') {
       const body = String(init.body || '');
       if (body.includes('etp_rt_cookie') && LOGGED_OUT) return json({ error: 'invalid_request' }, 400);
+      // ?tokenfail: every token request is blocked (e.g. Cloudflare) while the data saver is on
+      if (params.has('tokenfail') && CRP.api.isPageless()) return json({ error: 'blocked' }, 403);
       return json({ access_token: 'dev', expires_in: 3600, token_type: 'Bearer', account_id: body.includes('client_id') ? undefined : 'acc', profile_id: 'prof', country: 'ES' });
     }
     if (p === '/content/v2/discover/seasonal_tags') return json({ data: [{ id: 'fall-2026', localization: { title: 'Otoño 2026' } }, { id: 'summer-2026', localization: { title: 'Verano 2026' } }] });

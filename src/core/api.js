@@ -42,6 +42,16 @@ CRP.api = (() => {
       template = { authorization: req.authorization, body: req.body };
       CRP.store.localSet('tokenTemplate', template);
     }
+    // What the data saver needs to know next time (see CRP.saver below).
+    if (!auth.anonymous) CRP.saver.setAccount(true);
+    else if (source === 'página') {
+      // the site itself says nobody is signed in: an old refresh template is useless,
+      // and a saver turned off for "anonymous" can come back
+      CRP.saver.setAccount(false);
+      template = null;
+      CRP.store.localSet('tokenTemplate', null);
+      if (CRP.saver.reason() === 'anon') CRP.saver.reset();
+    }
     if (CRP.diag) CRP.diag.setAuth({ source, anonymous: auth.anonymous, accountId: auth.accountId, profileId: auth.profileId });
     waiters.splice(0).forEach((fn) => fn(auth));
     // Identity changes found while a session() call is resolving are returned by
@@ -79,7 +89,8 @@ CRP.api = (() => {
   }
 
   async function refreshLoggedIn() {
-    const t = template || (await CRP.store.localGet('tokenTemplate')) || {};
+    template = template || (await CRP.store.localGet('tokenTemplate')) || null;
+    const t = template || {};
     const params = new URLSearchParams(t.body || '');
     params.set('grant_type', 'etp_rt_cookie');
     if (!params.get('device_id') && cookie('device_id')) params.set('device_id', cookie('device_id'));
@@ -248,10 +259,66 @@ CRP.api = (() => {
   // { panel, playhead, fully_watched, never_watched } for the next thing to play
   const upNext = (seriesId) => get('/content/v2/discover/up_next/' + seriesId).then((r) => (r.data || [])[0] || null);
 
+  // For the diagnostics report: which token request we replay (parameter names only).
+  async function templateInfo() {
+    const tp = template || (await CRP.store.localGet('tokenTemplate'));
+    return tp ? { client: tp.authorization ? 'page' : 'default', params: [...new URLSearchParams(tp.body || '').keys()] } : null;
+  }
+
   return {
-    ApiError, session, onIdentityChange, setPageless, isPageless,
+    ApiError, session, onIdentityChange, setPageless, isPageless, templateInfo,
     continueWatching, watchHistory, watchlist, addToWatchlist, removeFromWatchlist,
     browse, search, similar, seasonalTags, categories, objects,
     seriesInfo, seasons, episodes, upNext, markWatched, unmarkWatched, rateSeries, myRating,
+  };
+})();
+
+// Data saver state, kept in localStorage so main.js can decide synchronously at
+// document_start whether to stop the original page. If CR+ can't get the session on
+// its own, the saver turns itself off for a week and the page loads as before.
+CRP.saver = (() => {
+  const WEEK = 7 * 86400000;
+  const get = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
+  const set = (k, v) => {
+    try { if (v == null) localStorage.removeItem(k); else localStorage.setItem(k, String(v)); } catch (e) { return false; }
+    return get(k) === (v == null ? null : String(v));
+  };
+  const brokenAt = () => +(get('crp-saver-broken') || 0);
+  return {
+    broken: () => Date.now() - brokenAt() < WEEK,
+    reason: () => (Date.now() - brokenAt() < WEEK ? get('crp-saver-reason') : null),
+    since: () => brokenAt() || null,
+    hadAccount: () => get('crp-account') === '1',
+    known: () => get('crp-account') != null,
+    setAccount: (on) => set('crp-account', on ? '1' : '0'),
+    // Never seen this browser's session (anonymous could mean "not signed in" or "our
+    // refresh failed"): run the original page once, it tells us. Once per tab session.
+    checkOnce() {
+      try {
+        if (sessionStorage.getItem('crp-saver-check')) return false;
+        sessionStorage.setItem('crp-saver-check', 'pending');
+        if (sessionStorage.getItem('crp-saver-check') !== 'pending') return false;
+      } catch (e) { return false; }
+      location.reload();
+      return true;
+    },
+    // main.js: is this the load checkOnce() asked for? (consumes it)
+    skipThisLoad() {
+      try {
+        if (sessionStorage.getItem('crp-saver-check') !== 'pending') return false;
+        sessionStorage.setItem('crp-saver-check', 'done');
+        return true;
+      } catch (e) { return false; }
+    },
+    // Turn the saver off and reload with the original page. Returns false (and does
+    // nothing) if that can't be remembered, so it never reload-loops.
+    fail(reason) {
+      if (!set('crp-saver-broken', Date.now())) return false;
+      set('crp-saver-reason', reason);
+      if (CRP.diag) CRP.diag.error('ahorro de datos', reason);
+      location.reload();
+      return true;
+    },
+    reset() { set('crp-saver-broken', null); set('crp-saver-reason', null); },
   };
 })();
