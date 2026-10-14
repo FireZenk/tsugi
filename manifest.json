@@ -68,6 +68,7 @@
         "src/core/finder.js",
         "src/core/profile.js",
         "src/core/recs.js",
+        "src/core/stats.js",
         "src/core/agenda.js",
         "src/ui/components.js",
         "src/ui/drawer.js",

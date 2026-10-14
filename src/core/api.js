@@ -186,13 +186,15 @@ CRP.api = (() => {
   const continueWatching = (n = 24) =>
     personal('GET', '/content/v2/discover/{id}/history', { params: { n } }).then((r) => r.data || []);
 
-  async function watchHistory(maxPages = 3, pageSize = 100) {
+  async function watchHistory(maxPages = 3, pageSize = 100, onPage) {
     const out = [];
     let r = await personal('GET', '/content/v2/{id}/watch-history', { params: { page_size: pageSize } });
     out.push(...(r.data || []));
+    if (onPage) onPage();
     for (let p = 1; p < maxPages && r.meta && r.meta.next_page; p++) {
       r = await get(r.meta.next_page);
       out.push(...(r.data || []));
+      if (onPage) onPage();
     }
     return out;
   }
