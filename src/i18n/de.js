@@ -463,6 +463,7 @@ CRP.i18n.add('de', {
   "Ya lo vi": "Schon gesehen",
   "Ficha": "Details",
   "Otra": "Andere",
+  "De lo mejor valorado que no has visto": "Bestens bewertet und noch nicht gesehen",
   "Recomendada para ti": "Für dich empfohlen",
   "Un rato": "Kurz mal",
   "Una tarde": "Ein Abend",

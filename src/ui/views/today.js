@@ -123,18 +123,51 @@ CRP.views.today = (ctx) => {
         }));
       return eps;
     }
+    const queue = ctx.queue(ag).map((q) => cat.get(q.id)).filter(Boolean);
+    const fromRecs = (r) => ({ kind: 'series', s: r.series, why: CRP.recs.why(r), traits: r.traits });
     if (m === 'evening') {
+      // finish something tonight, then a movie or an OVA/special (1–4 episodes): from
+      // your queue, then your recommendations, then the best rated you haven't seen
       const finish = (ag ? ag.series : []).filter((s) => s.state === 'active' && s.next && s.pendingCount <= 4 && s.pendingMin <= 130)
         .map((s) => ({ kind: 'ep', e: s.next, series: s, label: t('Termínala esta noche: {n} ep · {time}', { n: s.pendingCount, time: fmtMinutes(s.pendingMin) }) }));
-      const movies = (recs || []).filter((r) => r.series.kind === 'movie_listing')
-        .map((r) => ({ kind: 'series', s: r.series, why: CRP.recs.why(r), traits: r.traits }));
-      return finish.concat(movies);
+      const queued = queue.filter(fitsEvening).map((x) => ({ kind: 'series', s: x, why: t('Siguiente en tu cola'), traits: eveningTraits(x) }));
+      const recShort = (recs || []).filter((r) => fitsEvening(r.series)).map(fromRecs);
+      return uniqPicks([...finish, ...queued, ...recShort, ...eveningBest()]);
     }
-    // binge: your queue first, then finished series of 10–40 episodes, best ranked
-    const queued = ctx.queue(ag).map((q) => CRP.catalog.get(q.id)).filter(Boolean)
-      .map((x) => ({ kind: 'series', s: x, why: t('Siguiente en tu cola'), traits: [x.episodes ? t('{n} ep', { n: x.episodes }) : null].filter(Boolean) }));
-    return queued.concat((recs || []).filter((r) => r.series.kind !== 'movie_listing' && !cat.isAiring(r.series) && r.series.episodes >= 10 && r.series.episodes <= 40)
-      .map((r) => ({ kind: 'series', s: r.series, why: CRP.recs.why(r), traits: r.traits })));
+    // binge: your queue (whole series only), then finished series of 10–40 episodes, best ranked
+    const queued = queue.filter((x) => x.kind !== 'movie_listing' && x.episodes >= 8)
+      .map((x) => ({ kind: 'series', s: x, why: t('Siguiente en tu cola'), traits: [t('{n} ep', { n: x.episodes })] }));
+    return uniqPicks(queued.concat((recs || []).filter((r) => r.series.kind !== 'movie_listing' && !cat.isAiring(r.series) && r.series.episodes >= 10 && r.series.episodes <= 40)
+      .map(fromRecs)));
+  }
+
+  // An evening: a movie, or an OVA / special / mini-series of 1–4 episodes.
+  const fitsEvening = (x) => !!x && (x.kind === 'movie_listing' || (x.episodes >= 1 && x.episodes <= 4));
+  const eveningTraits = (x) => [
+    x.kind === 'movie_listing' ? t('Película') : t('Corta · {n} ep', { n: x.episodes }),
+    ctx.dub() && x.audio.includes(ctx.dub()) ? t('En {lang}', { lang: CRP.util.langLower(ctx.dub()) }) : null,
+  ].filter(Boolean);
+  const uniqPicks = (list) => {
+    const ids = new Set();
+    return list.filter((c) => { const id = c.kind === 'ep' ? c.series.id : c.s.id; if (ids.has(id)) return false; ids.add(id); return true; });
+  };
+  // Unseen movies and short specials, by blended rating + how well they fit your genres
+  // (+ your dub). The "similar to" graph behind recommendations rarely yields movies.
+  function eveningBest() {
+    if (!cat.current()) return [];
+    const prof = new Map(((ranked && ranked.profile) || []).map((g) => [g.id, g.w]));
+    const dub = ctx.dub();
+    const run = (text) => CRP.finder.run({ text, facets: {}, sort: 'rating' }, ctx).list;
+    const pool = [...run('peliculas sin ver'), ...run('hasta 4 ep sin ver')].filter(fitsEvening);
+    return pool.map((x) => {
+      const match = x.genres.filter((g) => prof.has(g)).sort((a, b) => prof.get(b) - prof.get(a));
+      const aff = Math.min(1, match.reduce((sum, g) => sum + prof.get(g), 0));
+      const q = CRP.ext.quality(x);
+      return { x, match, score: (q == null ? 0.4 : q) + 0.35 * aff + (dub && x.audio.includes(dub) ? 0.1 : 0) };
+    }).sort((a, b) => b.score - a.score).slice(0, 30).map(({ x, match }) => ({
+      kind: 'series', s: x, traits: eveningTraits(x),
+      why: match.length ? t('Encaja con tu gusto por {genres}', { genres: CRP.model.genreTitle(match[0]).toLowerCase() }) : t('De lo mejor valorado que no has visto'),
+    }));
   }
 
   function bigCard(c) {
@@ -274,10 +307,10 @@ CRP.views.today = (ctx) => {
     }
     weekBlock.setBody(ui.skeleton('ep', 1));
     ctx.data.agenda().then((a) => { ag = a; renderPick(); renderWeek(); }).catch((e) => weekBlock.setBody(ui.errorBox(e, start)));
-    ctx.data.graph().then(() => { ranked = ctx.rank(80); renderPick(); renderQuick(); }).catch(() => { ranked = { items: [], seeds: [] }; renderPick(); });
+    ctx.data.graph().then(() => { ranked = ctx.rank(400); renderPick(); renderQuick(); }).catch(() => { ranked = { items: [], seeds: [] }; renderPick(); });
   }
 
-  ctx.on('taste', 'today', () => { if (ctx.data.graphNow()) { ranked = ctx.rank(80); renderPick(); } renderShelves(); });
+  ctx.on('taste', 'today', () => { if (ctx.data.graphNow()) { ranked = ctx.rank(400); renderPick(); } renderShelves(); });
   ctx.on('shelves', 'today', renderShelves);
   // something was marked watched / hidden: reload progress-dependent blocks
   ctx.on('progress', 'today', () => {
