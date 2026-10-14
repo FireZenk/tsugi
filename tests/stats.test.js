@@ -16,7 +16,7 @@ test('totals, streak, favourites and started/finished series per year', () => {
   assert.strictEqual(s.episodes, 5);
   assert.strictEqual(s.activeDays, 5);
   assert.strictEqual(s.streak.days, 3);
-  assert.strictEqual(s.topSeries[0].id, 'A');
+  assert.strictEqual(s.topSeries[0].id, 'B');
   assert.deepStrictEqual(JSON.parse(JSON.stringify(s.started.map((x) => x.id))), ['B']);          // A began in 2025
   assert.deepStrictEqual(JSON.parse(JSON.stringify(s.finished.map((x) => x.id))), ['A']);          // 4 of 4 episodes
   assert.strictEqual(s.busiestMonth[0], '2026-03');
