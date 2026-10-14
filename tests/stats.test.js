@@ -9,17 +9,17 @@ const e = (s, t, min, fw = 1) => ({ t, s, st: 'Serie ' + s, id: s + t, sec: min 
 test('totals, streak, favourites and started/finished series per year', () => {
   const list = [
     e('A', at(2025, 12, 30), 24), e('A', at(2026, 1, 1), 24), e('A', at(2026, 1, 2), 24), e('A', at(2026, 1, 3), 24),
-    e('B', at(2026, 3, 10, 9), 48), e('B', at(2026, 3, 12, 22), 24),
+    e('B', at(2026, 3, 10, 9), 48), e('B', at(2026, 3, 12, 22), 48),
   ];
   const s = CRP.stats.compute(list, CRP.stats.yearRange(2026), { episodesOf: (id) => (id === 'A' ? 4 : 12), genresOf: (id) => (id === 'A' ? ['action'] : ['drama']) });
-  assert.strictEqual(s.minutes, 24 * 3 + 72);
+  assert.strictEqual(s.minutes, 24 * 3 + 96);
   assert.strictEqual(s.episodes, 5);
   assert.strictEqual(s.activeDays, 5);
   assert.strictEqual(s.streak.days, 3);
   assert.strictEqual(s.topSeries[0].id, 'A');
-  assert.deepStrictEqual(s.started.map((x) => x.id), ['B']);          // A began in 2025
-  assert.deepStrictEqual(s.finished.map((x) => x.id), ['A']);          // 4 of 4 episodes
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(s.started.map((x) => x.id))), ['B']);          // A began in 2025
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(s.finished.map((x) => x.id))), ['A']);          // 4 of 4 episodes
   assert.strictEqual(s.busiestMonth[0], '2026-03');
   assert.strictEqual(s.topGenres[0].id, 'drama');
-  assert.deepStrictEqual(CRP.stats.years(list).map(Number), [2026, 2025]);
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(CRP.stats.years(list))), [2026, 2025]);
 });
