@@ -70,7 +70,7 @@ CRP.diag = (() => {
       locale: CRP.util.contentLocale(),
       dub: st.dubLocale(),
       dataSaver: {
-        setting: st.get().dataSaver !== false, pagelessThisLoad: CRP.api.isPageless(),
+        setting: st.get().dataSaverOptIn === true, pagelessThisLoad: CRP.api.isPageless(),
         paused: CRP.saver.broken() ? { since: new Date(CRP.saver.since()).toISOString(), reason: CRP.saver.reason() } : null,
         hadAccount: CRP.saver.hadAccount(), tokenTemplate: await CRP.api.templateInfo().catch(() => null),
       },

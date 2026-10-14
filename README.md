@@ -67,7 +67,7 @@ recalcular, ver el inicio original o desactivar.
   - Traduce toda la interfaz, el popup y los avisos de estreno; fechas y días de la semana con el formato del idioma.
   - El buscador entiende castellano e inglés siempre, más el idioma de la interfaz: `kurz, synchronisiert, ohne Romantik`, `courte, en VF, sans harem`, `corta, doppiata, come Frieren`.
   - Las búsquedas de un clic, los planes de «¿Qué te apetece?» y los ejemplos están escritos en cada idioma (los tests comprueban que dan los mismos filtros que en castellano).
-- **Ahorro de datos** (activado por defecto): en el inicio no se carga la página original de Crunchyroll, que quedaba oculta detrás de CR+ (~4 MB de scripts, imágenes y rastreadores). CR+ renueva la sesión por su cuenta; si no la encuentra, carga el original una sola vez para capturarla. Se puede desactivar en Ajustes.
+- **Ahorro de datos** (experimental, desactivado por defecto desde 0.6.4): en el inicio no se carga la página original de Crunchyroll, que queda oculta detrás de CR+ (~4 MB de scripts, imágenes y rastreadores), y CR+ renueva la sesión por su cuenta. Con algunas sesiones iniciadas dejaba la página en negro; si falla, se pausa solo y carga el original. Se activa en Ajustes.
 
 ## Novedades 0.5
 

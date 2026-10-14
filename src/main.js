@@ -26,7 +26,7 @@
   // If CR+ couldn't get the session without the page, it turned the saver off for a
   // week (CRP.saver.fail) and this load runs the original app as before.
   const flag = (k) => { try { return localStorage.getItem(k); } catch (e) { return null; } };
-  if (wanted() && flag('crp-enabled') !== '0' && flag('crp-datasaver') !== '0' && !CRP.saver.broken() && !CRP.saver.skipThisLoad()) {
+  if (wanted() && flag('crp-enabled') !== '0' && flag('crp-datasaver-optin') === '1' && !CRP.saver.broken() && !CRP.saver.skipThisLoad()) {
     window.stop();
     CRP.api.setPageless(true);
     CRP.boot.step('pageless');
@@ -36,7 +36,8 @@
   const mirror = (s) => {
     try {
       localStorage.setItem('crp-enabled', s.enabled === false ? '0' : '1');
-      localStorage.setItem('crp-datasaver', s.dataSaver === false ? '0' : '1');
+      localStorage.setItem('crp-datasaver-optin', s.dataSaverOptIn === true ? '1' : '0');
+      localStorage.removeItem('crp-datasaver');   // pre-0.6.4 flag (saver on by default)
     } catch (e) { /* ignore */ }
   };
 

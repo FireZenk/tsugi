@@ -11,7 +11,9 @@ CRP.store = (() => {
     // Recommender knobs, all -1..1 except explore (0..1)
     tune: { pop: 0, len: 0, era: 0, explore: 0.3, dubOnly: false },
     rateToCR: true,        // also send star ratings to Crunchyroll
-    dataSaver: true,       // don't load the original (hidden) home page
+    // Experimental, off by default: don't load the original (hidden) home page. It
+    // replaced `dataSaver` (on by default in 0.6.0-0.6.3), which could leave a black page.
+    dataSaverOptIn: false,
     uiLang: 'auto',        // interface language ('auto' = from the site language)
   };
 

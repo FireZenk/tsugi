@@ -172,6 +172,7 @@ CRP.i18n.add('fr', {
   "Volver a consultar AniList": "Consulter AniList à nouveau",
   "Ahorro de datos": "Économie de données",
   "En el inicio no se carga la página original de Crunchyroll (unos 4 MB de scripts, imágenes y rastreadores que quedarían ocultos detrás de CR+). Si alguna vez falla la sesión, desactívalo.": "Sur l'accueil, la page d'origine de Crunchyroll n'est pas chargée (environ 4 Mo de scripts, d'images et de traceurs qui resteraient cachés derrière CR+). Si la session échoue un jour, désactivez-la.",
+  "Experimental: con algunas sesiones la página se queda en negro. Si te pasa, desactívalo.": "Expérimental : avec certaines sessions, la page reste noire. Si cela arrive, désactivez-le.",
   "Ahorrar datos en el inicio": "Économiser des données sur l'accueil",
   "Cargar sin ahorro de datos": "Charger sans économie de données",
   "En pausa: Crunchyroll no dio tu sesión sin cargar su página ({reason}). Se volverá a probar solo dentro de unos días.": "En pause : Crunchyroll n'a pas fourni votre session sans charger sa page ({reason}). Nouvel essai automatique dans quelques jours.",
