@@ -360,6 +360,9 @@ CRP.app = (() => {
         profileSection(ctx, render, onChange),
         notifySection(ctx),
         diagSection(),
+        h('h4', 'Ahorro de datos'),
+        h('p.hint', 'En el inicio no se carga la página original de Crunchyroll (unos 4 MB de scripts, imágenes y rastreadores que quedarían ocultos detrás de CR+). Si alguna vez falla la sesión, desactívalo.'),
+        ui.toggle('Ahorrar datos en el inicio', s.dataSaver !== false, (v) => store.set({ dataSaver: v })),
         h('h4', 'Datos'),
         h('div.btns',
           h('button.btn', { onclick: async () => { close(); ui.toast('Reindexando el catálogo…'); await CRP.catalog.refresh(); ui.toast('Catálogo actualizado'); } }, ui.icon('refresh', 16), 'Reindexar catálogo'),
@@ -570,6 +573,18 @@ CRP.app = (() => {
         return;
       }
       if (disposed) return;
+      // Data saver stopped the original page and our own token refresh came back
+      // anonymous: maybe we've never seen this browser's session. Load the original once
+      // (the page captures it), then the saver works on every later visit.
+      if (auth.anonymous && api.isPageless()) {
+        let state = null;
+        try { state = sessionStorage.getItem('crp-saver-retry'); } catch (e) { /* ignore */ }
+        if (state !== 'used') {
+          try { sessionStorage.setItem('crp-saver-retry', 'pending'); } catch (e) { /* ignore */ }
+          location.reload();
+          return;
+        }
+      }
       main.replaceChildren();
       views = {};
       ctx = createCtx(shadow, auth);

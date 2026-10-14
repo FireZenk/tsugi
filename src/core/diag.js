@@ -69,6 +69,7 @@ CRP.diag = (() => {
       page: location.pathname,
       locale: CRP.util.contentLocale(),
       dub: st.dubLocale(),
+      dataSaver: { setting: st.get().dataSaver !== false, pagelessThisLoad: CRP.api.isPageless() },
       auth: { ...state },
       catalog: cat ? { items: cat.items.length, ts: new Date(cat.ts).toISOString() } : null,
       anilist: CRP.ext ? CRP.ext.stats() : null,

@@ -96,9 +96,14 @@ CRP.api = (() => {
     return auth;
   }
 
+  // When the data saver stopped the original page there's no page token to wait for.
+  let pageless = false;
+  const setPageless = (v) => { pageless = !!v; };
+  const isPageless = () => pageless;
+
   let triedLogin = false;
   async function obtain() {
-    if (!auth) {
+    if (!auth && !pageless) {
       const fromPage = await waitForHook(HOOK_WAIT_MS);
       if (fromPage && !fromPage.anonymous && fromPage.exp - Date.now() > 60000) return fromPage;
     }
@@ -244,7 +249,7 @@ CRP.api = (() => {
   const upNext = (seriesId) => get('/content/v2/discover/up_next/' + seriesId).then((r) => (r.data || [])[0] || null);
 
   return {
-    ApiError, session, onIdentityChange,
+    ApiError, session, onIdentityChange, setPageless, isPageless,
     continueWatching, watchHistory, watchlist, addToWatchlist, removeFromWatchlist,
     browse, search, similar, seasonalTags, categories, objects,
     seriesInfo, seasons, episodes, upNext, markWatched, unmarkWatched, rateSeries, myRating,
