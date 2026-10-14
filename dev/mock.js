@@ -144,10 +144,16 @@
     const avail = s._airing ? s._released : s._per;
     const n = Math.min(avail, 2 + (si * 3) % 11);
     return Array.from({ length: n }, (_, j) => ({
-      id: `EP${s.id}-${k}-${j + 1}`, date_played: new Date(NOW - (si * 9 + (n - j)) * DAY).toISOString(),
+      id: `EP${s.id}-${k}-${j + 1}`, date_played: new Date(NOW - (si * 9 + (n - j)) * DAY - ((si * 5 + j * 7) % 14) * 3600000).toISOString(),
       playhead: 1300, fully_watched: true, panel: episodeOf(s, k, j + 1),
     }));
-  }).sort((a, b) => b.date_played.localeCompare(a.date_played));
+  }).concat(
+    // older viewing (more than a year ago: not followed by the agenda, but in the stats)
+    SERIES.filter((_, i) => i % 9 === 4).slice(0, 14).flatMap((s, si) => Array.from({ length: Math.min(s._per, 4 + (si * 5) % 9) }, (_, j) => ({
+      id: `EPold${s.id}-${j + 1}`, date_played: new Date(NOW - (380 + si * 23 + j) * DAY - ((si * 3 + j * 5) % 16) * 3600000).toISOString(),
+      playhead: 1400, fully_watched: true, panel: episodeOf(s, 1, j + 1),
+    }))),
+  ).sort((a, b) => b.date_played.localeCompare(a.date_played));
   const WATCHLIST = SERIES.filter((_, i) => i % 7 === 1).slice(0, 18).concat(watched.slice(0, 5)).map((s, i) => ({
     new: i % 5 === 0, new_content: i % 5 === 0, is_favorite: i % 6 === 0, never_watched: !watched.includes(s), fully_watched: false,
     playhead: 0, panel: episodeOf(s, 1, 1),

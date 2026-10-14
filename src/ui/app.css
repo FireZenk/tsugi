@@ -517,3 +517,50 @@ a.card:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; bo
 .ftag { display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: .02em; background: rgba(255, 148, 71, .16); color: var(--fill-filler); }
 .ftag.recap { background: rgba(122, 167, 255, .16); color: var(--fill-recap); }
 .bptext .ftag { margin-right: 6px; }
+
+/* ---------------------------------------------------------------- stats */
+.view.stats .sthead .controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.stkpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.hls { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; }
+.hlbtn { text-align: left; display: block; }
+.hl { height: 100%; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; display: flex; gap: 14px; align-items: center; }
+.hlbtn:hover .hl { border-color: var(--accent); }
+.hl .hlimg { width: 58px; height: 87px; object-fit: cover; border-radius: 6px; flex: none; }
+.hlt { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.hlt small { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+.hlt b { font-size: 20px; font-weight: 800; letter-spacing: -.01em; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; }
+.hlt span { color: var(--muted); font-size: 13px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.heat { overflow-x: auto; padding-bottom: 6px; }
+.hgrid { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 12px); grid-auto-columns: 12px; gap: 3px; width: max-content; }
+.hc { display: block; width: 12px; height: 12px; border-radius: 3px; background: var(--panel-3); }
+.hc.out { background: transparent; }
+.hc.l1 { background: rgba(244, 117, 33, .3); }
+.hc.l2 { background: rgba(244, 117, 33, .55); }
+.hc.l3 { background: rgba(244, 117, 33, .8); }
+.hc.l4 { background: var(--accent); }
+.hlegend { display: flex; align-items: center; gap: 3px; margin-top: 8px; color: var(--muted); }
+.hlegend small { font-size: 11px; margin: 0 4px; }
+.whens { display: grid; grid-template-columns: 2fr 1.4fr 1fr; gap: 14px; }
+.wbox { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; min-width: 0; }
+.wbox h4 { margin: 0 0 10px; font-size: 13px; color: var(--muted); font-weight: 600; }
+.bars { display: flex; align-items: flex-end; gap: 3px; height: 130px; }
+.bar { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; height: 100%; min-width: 0; }
+.btrack { flex: 1; width: 100%; display: flex; align-items: flex-end; }
+.btrack i { display: block; width: 100%; background: var(--accent); border-radius: 3px 3px 0 0; opacity: .85; }
+.bar:hover .btrack i { opacity: 1; }
+.bar small { font-size: 10px; color: var(--muted); height: 12px; line-height: 12px; white-space: nowrap; }
+.toplist { display: flex; flex-direction: column; gap: 6px; }
+.trow { display: grid; grid-template-columns: 26px 40px minmax(0, 1.4fr) minmax(0, 1fr) 70px; align-items: center; gap: 12px; padding: 6px 10px; border-radius: 10px; text-align: left; }
+.trow:hover { background: var(--panel-2); }
+.trow .tpos { color: var(--muted); font-weight: 700; text-align: right; }
+.trow img.mini, .trow .noimg.mini { width: 40px; height: 60px; border-radius: 5px; object-fit: cover; }
+.trow .tname { display: flex; flex-direction: column; min-width: 0; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.trow .tname small { color: var(--muted); font-weight: 400; }
+.trow .tbar { height: 8px; background: var(--panel-3); border-radius: 4px; overflow: hidden; }
+.trow .tbar i { display: block; height: 100%; background: var(--accent); }
+.trow .thours { text-align: right; font-variant-numeric: tabular-nums; }
+@media (max-width: 900px) {
+  .whens { grid-template-columns: 1fr; }
+  .trow { grid-template-columns: 22px 34px minmax(0, 1fr) 60px; }
+  .trow .tbar { display: none; }
+}

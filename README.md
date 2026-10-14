@@ -60,6 +60,14 @@ series, reproductor e historial siguen siendo los de Crunchyroll.
 Ajustes (⚙): idioma de doblaje que te interesa, listas de 👍 y 👎, reindexar el catálogo,
 recalcular, ver el inicio original o desactivar.
 
+## Novedades 0.8
+
+- **Estadísticas** (nueva pestaña, tecla `5`), calculadas en tu navegador con tu historial completo de Crunchyroll:
+  - por año o de todo el historial: horas, episodios, series, días con algo visto y racha más larga;
+  - lo más destacado: serie más vista, mes más intenso, día y franja favoritos, género, series nuevas y terminadas, versión original frente a doblaje;
+  - mapa de calor diario, horas por mes, por hora del día y por día de la semana, top de series y géneros;
+  - «Copiar resumen» para compartirlo.
+
 ## Novedades 0.7
 
 - **Relleno y resúmenes** (según MyAnimeList, vía Jikan):

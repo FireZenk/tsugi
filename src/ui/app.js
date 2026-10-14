@@ -544,6 +544,7 @@ CRP.app = (() => {
     { id: 'search', title: 'Buscar', icon: 'search' },
     { id: 'foryou', title: 'Para ti', icon: 'sparkle' },
     { id: 'agenda', title: 'Agenda', icon: 'calendar' },
+    { id: 'stats', title: 'Estadísticas', icon: 'chart' },
   ];
 
   function mount() {
@@ -671,7 +672,7 @@ CRP.app = (() => {
         if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT' || target.isContentEditable)) return;
         const handled = () => { e.preventDefault(); e.stopPropagation(); };
         if (e.key === '/') { handled(); input.focus(); input.select(); return; }
-        if (/^[1-4]$/.test(e.key)) { handled(); go(TABS[+e.key - 1].id); return; }
+        if (/^[1-9]$/.test(e.key) && +e.key <= TABS.length) { handled(); go(TABS[+e.key - 1].id); return; }
         if (e.key === '?') { handled(); toggleHelp(); return; }
         const scope = !app.querySelector('aside.qv').hidden ? app.querySelector('aside.qv') : main.querySelector('.view:not([hidden])');
         if (!scope) return;
@@ -704,7 +705,7 @@ CRP.app = (() => {
       help = h('div.kbdhelp', { onclick: () => toggleHelp() },
         h('div.kbdbox',
           h('h3', t('Atajos de teclado')),
-          row('/', t('Buscar')), row('1 – 4', TABS.map((tab) => t(tab.title)).join(' · ')), row('J / K', t('Siguiente / anterior serie')),
+          row('/', t('Buscar')), row(`1 – ${TABS.length}`, TABS.map((tab) => t(tab.title)).join(' · ')), row('J / K', t('Siguiente / anterior serie')),
           row(t('Enter o F'), t('Abrir la ficha')), row('L', t('Añadir o quitar de Mi lista')), row('Esc', t('Cerrar ficha / ajustes')), row('?', t('Esta ayuda'))));
       app.append(help);
     }

@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Crunchyroll+",
   "short_name": "CR+",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "__MSG_description__",
   "permissions": [
     "storage",
@@ -76,6 +76,7 @@
         "src/ui/views/search.js",
         "src/ui/views/foryou.js",
         "src/ui/views/agenda.js",
+        "src/ui/views/stats.js",
         "src/ui/app.js",
         "src/main.js"
       ],
