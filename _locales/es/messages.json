@@ -1,3 +1,5 @@
 {
-  "description": { "message": "Convierte el inicio de Crunchyroll en una herramienta: búsqueda por filtros reales (doblaje, duración, nota…) en todo el catálogo, recomendaciones que controlas, agenda de estrenos y pendientes." }
+  "description": {
+    "message": "Qué ver a continuación en Crunchyroll: busca en todo el catálogo con filtros reales, recomendaciones a tu gusto, agenda y relleno."
+  }
 }

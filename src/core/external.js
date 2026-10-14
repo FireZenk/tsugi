@@ -233,7 +233,7 @@ CRP.ext = (() => {
           got.forEach((e, id) => { map[id] = e; });
           save();
         } catch (e) {
-          console.warn('[CR+] AniList batch failed', e);
+          console.warn('[Tsugi] AniList batch failed', e);
           await sleep(30000);
         }
         progress.done = Math.min(queue.length, i + BATCH);
@@ -249,7 +249,7 @@ CRP.ext = (() => {
             await details(need.slice(i, i + 40));
             save();
           } catch (e) {
-            console.warn('[CR+] AniList details failed', e);
+            console.warn('[Tsugi] AniList details failed', e);
             await sleep(30000);
           }
           progress.done = Math.min(need.length, i + 40);

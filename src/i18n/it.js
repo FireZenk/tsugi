@@ -40,7 +40,7 @@ CRP.i18n.add('it', {
   "Temporadas / episodios": "Stagioni / episodi",
   "AniList": "AniList",
   "página": "pagina",
-  "renovado por CR+ (etp_rt)": "rinnovato da CR+ (etp_rt)",
+  "renovado por {app} (etp_rt)": "rinnovato da {app} (etp_rt)",
   "anónimo": "anonimo",
   "Diagnóstico": "Diagnostica",
   "Sesión: {s} · token {src} · cuenta {acc} · perfil {prof}": "Sessione: {s} · token {src} · account {acc} · profilo {prof}",
@@ -109,7 +109,7 @@ CRP.i18n.add('it', {
   "hace 1 año": "1 anno fa",
 
   // ------------------------------------------------------------- shell & actions
-  "Volver a Crunchyroll+": "Torna a Crunchyroll+",
+  "Volver a {app}": "Torna a {app}",
   "TU NOTA {n}": "IL TUO VOTO {n}",
   "EN TU LISTA": "NELLA TUA LISTA",
   "VISTA": "VISTA",
@@ -120,7 +120,7 @@ CRP.i18n.add('it', {
   "«{title}» quitada de Mi lista": "«{title}» rimossa da La mia lista",
   "«{title}» añadida a Mi lista": "«{title}» aggiunta a La mia lista",
   "No se pudo actualizar Mi lista. Inténtalo en la página de la serie.": "Impossibile aggiornare La mia lista. Prova dalla pagina della serie.",
-  "Guardada en CR+, pero Crunchyroll no aceptó la valoración.": "Salvata in CR+, ma Crunchyroll non ha accettato la valutazione.",
+  "Guardada en {app}, pero Crunchyroll no aceptó la valoración.": "Salvata in {app}, ma Crunchyroll non ha accettato la valutazione.",
   "{n} series quitadas de Mi lista": "{n} serie rimosse da La mia lista",
   "Deshacer": "Annulla",
   "Crunchyroll no aceptó marcarlo como visto.": "Crunchyroll non ha accettato di segnarlo come visto.",
@@ -147,7 +147,7 @@ CRP.i18n.add('it', {
   "Agenda": "Calendario",
 
   // ------------------------------------------------------------- settings
-  "Ajustes de Crunchyroll+": "Impostazioni di Crunchyroll+",
+  "Ajustes de {app}": "Impostazioni di {app}",
   "Ajustes": "Impostazioni",
   "Cerrar": "Chiudi",
   "Idioma de la interfaz": "Lingua dell'interfaccia",
@@ -171,7 +171,7 @@ CRP.i18n.add('it', {
   "Consultando AniList de nuevo en segundo plano…": "Nuova consultazione di AniList in background…",
   "Volver a consultar AniList": "Consulta di nuovo AniList",
   "Ahorro de datos": "Risparmio dati",
-  "En el inicio no se carga la página original de Crunchyroll (unos 4 MB de scripts, imágenes y rastreadores que quedarían ocultos detrás de CR+). Si alguna vez falla la sesión, desactívalo.": "Nella home non si carica la pagina originale di Crunchyroll (circa 4 MB di script, immagini e tracker che resterebbero nascosti dietro CR+). Se la sessione dovesse fallire, disattivalo.",
+  "En el inicio no se carga la página original de Crunchyroll (unos 4 MB de scripts, imágenes y rastreadores que quedarían ocultos detrás de {app}). Si alguna vez falla la sesión, desactívalo.": "Nella home non si carica la pagina originale di Crunchyroll (circa 4 MB di script, immagini e tracker che resterebbero nascosti dietro {app}). Se la sessione dovesse fallire, disattivalo.",
   "Experimental: con algunas sesiones la página se queda en negro. Si te pasa, desactívalo.": "Sperimentale: con alcune sessioni la pagina resta nera. Se ti succede, disattivalo.",
   "Ahorrar datos en el inicio": "Risparmia dati nella home",
   "Cargar sin ahorro de datos": "Carica senza risparmio dati",
@@ -184,7 +184,7 @@ CRP.i18n.add('it', {
   "Reindexar catálogo": "Reindicizza catalogo",
   "Recalcular recomendaciones y agenda": "Ricalcola consigli e calendario",
   "Ver inicio original (esta pestaña)": "Mostra la home originale (questa scheda)",
-  "Desactivar Crunchyroll+": "Disattiva Crunchyroll+",
+  "Desactivar {app}": "Disattiva {app}",
   "Tu perfil de AniList / MyAnimeList": "Il tuo profilo AniList / MyAnimeList",
   "Importa tu lista pública: lo que ya viste (aunque no fuera en Crunchyroll) y tus notas, que pesan mucho en las recomendaciones.": "Importa la tua lista pubblica: ciò che hai già visto (anche fuori da Crunchyroll) e i tuoi voti, che pesano molto nei consigli.",
   "Enviar mis estrellas (de la ficha) también a Crunchyroll": "Invia le mie stelle (dalla scheda) anche a Crunchyroll",

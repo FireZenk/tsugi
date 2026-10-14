@@ -30,7 +30,7 @@ CRP.app = (() => {
   function createCtx(root, auth) {
     const loggedIn = !auth.anonymous;
     const listeners = { watchlist: new Map(), taste: new Map(), ext: new Map(), shelves: new Map(), progress: new Map(), filler: new Map() };
-    const emit = (ev) => (listeners[ev] || new Map()).forEach((fn) => { try { fn(); } catch (e) { console.warn('[CR+]', e); } });
+    const emit = (ev) => (listeners[ev] || new Map()).forEach((fn) => { try { fn(); } catch (e) { console.warn('[Tsugi]', e); } });
     let watchlistIds = new Set();
     let stats = new Map();
     let agendaById = new Map();
@@ -40,7 +40,7 @@ CRP.app = (() => {
     const data = {};
     // Official "continue watching"; if it fails, the latest unfinished episode per series.
     data.continue = lazy(() => api.continueWatching(30).catch(async (err) => {
-      console.warn('[CR+] continue-watching endpoint failed, using history', err);
+      console.warn('[Tsugi] continue-watching endpoint failed, using history', err);
       const hist = await data.history();
       const seen = new Set();
       return hist.filter((e) => {
@@ -220,7 +220,7 @@ CRP.app = (() => {
         if (value && loggedIn && store.get().rateToCR !== false) {
           api.rateSeries(series.id, value).catch((e) => {
             CRP.diag.error('valorar en Crunchyroll', e);
-            ui.toast(t('Guardada en CR+, pero Crunchyroll no aceptó la valoración.'));
+            ui.toast(t('Guardada en {app}, pero Crunchyroll no aceptó la valoración.'));
           });
         }
         const g = data.graph.now();
@@ -344,7 +344,7 @@ CRP.app = (() => {
 
   // ---------------------------------------------------------------- settings
   function settingsDrawer(ctx, { onChange }) {
-    const drawer = h('aside.drawer', { hidden: true, tabindex: '-1', 'aria-label': t('Ajustes de Crunchyroll+') });
+    const drawer = h('aside.drawer', { hidden: true, tabindex: '-1', 'aria-label': t('Ajustes de {app}') });
     const close = () => { drawer.hidden = true; };
     ctx.root.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !drawer.hidden) close(); });
     const render = () => {
@@ -396,7 +396,7 @@ CRP.app = (() => {
         notifySection(ctx),
         diagSection(),
         h('h4', t('Ahorro de datos')),
-        h('p.hint', t('En el inicio no se carga la página original de Crunchyroll (unos 4 MB de scripts, imágenes y rastreadores que quedarían ocultos detrás de CR+). Si alguna vez falla la sesión, desactívalo.')),
+        h('p.hint', t('En el inicio no se carga la página original de Crunchyroll (unos 4 MB de scripts, imágenes y rastreadores que quedarían ocultos detrás de {app}). Si alguna vez falla la sesión, desactívalo.')),
         h('p.hint.warn', t('Experimental: con algunas sesiones la página se queda en negro. Si te pasa, desactívalo.')),
         ui.toggle(t('Ahorrar datos en el inicio'), s.dataSaverOptIn === true, (v) => { CRP.saver.reset(); store.set({ dataSaverOptIn: v }); }),
         s.dataSaverOptIn === true && CRP.saver.broken() ? h('div',
@@ -407,7 +407,7 @@ CRP.app = (() => {
           h('button.btn', { onclick: async () => { close(); ui.toast(t('Reindexando el catálogo…')); await CRP.catalog.refresh(); ui.toast(t('Catálogo actualizado')); } }, ui.icon('refresh', 16), t('Reindexar catálogo')),
           h('button.btn.ghost', { onclick: async () => { await store.cacheClear('sim:'); await store.cacheClear('ag:'); close(); onChange(); } }, t('Recalcular recomendaciones y agenda')),
           h('button.btn.ghost', { onclick: () => ctx.openOriginal() }, t('Ver inicio original (esta pestaña)')),
-          h('button.btn.ghost', { onclick: async () => { await store.set({ enabled: false }); } }, t('Desactivar Crunchyroll+')),
+          h('button.btn.ghost', { onclick: async () => { await store.set({ enabled: false }); } }, t('Desactivar {app}')),
         ),
       );
     };
@@ -522,7 +522,7 @@ CRP.app = (() => {
       shadow.adoptedStyleSheets = [sheet];
       CRP.boot.step('styles');
     } catch (e) {
-      console.warn('[CR+] adoptedStyleSheets failed, falling back to <link>', e);
+      console.warn('[Tsugi] adoptedStyleSheets failed, falling back to <link>', e);
       CRP.boot.step('styles-link (' + (e && e.message) + ')');
       link();
     }
@@ -538,7 +538,7 @@ CRP.app = (() => {
       if (st.matched) ctx.emit('ext');
       // then, slowly, the filler lists of long series (for the "little filler" search)
       return CRP.filler.enrich(index.items);
-    }).catch((e) => console.warn('[CR+] AniList enrichment failed', e));
+    }).catch((e) => console.warn('[Tsugi] AniList enrichment failed', e));
     CRP.catalog.load().then(run).catch(() => {});
     if (!enrichOff) enrichOff = CRP.catalog.onUpdate(run);
   }
@@ -583,7 +583,7 @@ CRP.app = (() => {
     const searchWrap = h('div.qbox', ui.icon('search', 18), input, h('kbd', '/'));
     const headerRight = h('div.hright');
     const header = h('header.top',
-      h('a.logo', { href: prefix + '/', title: 'Crunchyroll+' }, h('span', 'crunchyroll'), h('b', '+')),
+      h('a.logo', { href: prefix + '/', title: CRP.brand.full }, h('span.mark', CRP.brand.mark), h('b', CRP.brand.name)),
       tabsNav, searchWrap, headerRight);
     const main = h('main');
     app.append(header, main, toasts);

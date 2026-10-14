@@ -3,7 +3,7 @@
 var CRP = globalThis.CRP || (globalThis.CRP = {});
 CRP.i18n.add('es-419', {
   "Ajustes": "Configuración",
-  "Ajustes de Crunchyroll+": "Configuración de Crunchyroll+",
+  "Ajustes de {app}": "Configuración de {app}",
   "Cerrar ficha / ajustes": "Cerrar ficha / configuración",
   "Tu historial, ordenado por cuánto y cuándo lo viste. Desactiva lo que no represente tu gusto. (Importa tu lista de AniList/MAL en Ajustes para afinar mucho más.)": "Tu historial, ordenado por cuánto y cuándo lo viste. Desactiva lo que no represente tu gusto. (Importa tu lista de AniList/MAL en Configuración para afinar mucho más.)",
   "1 descartada con 👎 (se usa para evitar parecidas). Gestiónalas en Ajustes.": "1 descartada con 👎 (se usa para evitar parecidas). Adminístralas en Configuración.",
@@ -16,7 +16,7 @@ CRP.i18n.add('es-419', {
   "Sin valoraciones": "Sin calificaciones",
   "Valoraciones externas": "Calificaciones externas",
   "Buscando valoraciones externas…": "Buscando calificaciones externas…",
-  "Guardada en CR+, pero Crunchyroll no aceptó la valoración.": "Guardada en CR+, pero Crunchyroll no aceptó la calificación.",
+  "Guardada en {app}, pero Crunchyroll no aceptó la valoración.": "Guardada en {app}, pero Crunchyroll no aceptó la calificación.",
   "Mejor valoradas (CR + AniList)": "Mejor calificadas (CR + AniList)",
   "Cortas en {lang}, bien valoradas": "Cortas en {lang}, bien calificadas",
   "{season}, mejor valoradas": "{season}, mejor calificadas",

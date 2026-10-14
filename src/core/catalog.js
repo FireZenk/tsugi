@@ -105,7 +105,7 @@ CRP.catalog = (() => {
       index = build(snap);
       updateFns.forEach((fn) => fn(index));
       return index;
-    }).catch((e) => { console.warn('[CR+] catalog refresh failed', e); });
+    }).catch((e) => { console.warn('[Tsugi] catalog refresh failed', e); });
   }
 
   const onProgress = (fn) => { progressFns.add(fn); return () => progressFns.delete(fn); };

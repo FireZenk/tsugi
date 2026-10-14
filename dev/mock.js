@@ -187,7 +187,7 @@
       source: SOURCES[h % SOURCES.length], status: s._airing ? 'RELEASING' : 'FINISHED',
       tags: [0, 3, 7, 11].map((o, i) => ({ name: TAGS[(h + o) % TAGS.length], rank: 95 - i * 9, isMediaSpoiler: i === 3 && h % 2 === 0 })),
       studios: { nodes: [{ name: STUDIOS[h % STUDIOS.length] }] },
-      trailer: h % 4 ? { id: 'aqz-KE-bpKQ', site: 'youtube' } : null,
+      trailer: h % 4 && !params.has('shots') ? { id: 'aqz-KE-bpKQ', site: 'youtube' } : null,   // ?shots: no third-party images
       nextAiringEpisode: s._airing ? { airingAt: Math.round((releaseAt(s, s._released + 1) - 3600000) / 1000), episode: s._released + 1 } : null,
       title: { english: s.title + (k ? ` Season ${k + 1}` : ''), romaji: s.title }, format: s.type === 'movie_listing' ? 'MOVIE' : 'TV',
       episodes: s._per, startDate: { year: s.series_metadata.series_launch_year + k, month: 4, day: 1 },
@@ -274,7 +274,12 @@
       return json({ access_token: 'dev', expires_in: 3600, token_type: 'Bearer', account_id: body.includes('client_id') ? undefined : 'acc', profile_id: 'prof', country: 'ES' });
     }
     if (p === '/content/v2/discover/seasonal_tags') return json({ data: [{ id: 'fall-2026', localization: { title: 'Otoño 2026' } }, { id: 'summer-2026', localization: { title: 'Verano 2026' } }] });
-    if (p === '/content/v1/tenant_categories') return json({ items: GENRES.map((g) => ({ tenant_category: g.toLowerCase(), localization: { title: { Action: 'Acción', Adventure: 'Aventura', Comedy: 'Comedia', Fantasy: 'Fantasía', 'Sci-Fi': 'Ciencia Ficción', Shonen: 'Shounen', 'Slice of Life': 'Recuentos de la Vida', Sports: 'Deportes', Supernatural: 'Sobrenatural' }[g] || g } })) });
+    if (p === '/content/v1/tenant_categories') {
+      // titles in the site language, like the real API (Spanish for es-*, English otherwise)
+      const es = /^es/.test(q.get('locale') || '');
+      const ES = { Action: 'Acción', Adventure: 'Aventura', Comedy: 'Comedia', Fantasy: 'Fantasía', 'Sci-Fi': 'Ciencia Ficción', Shonen: 'Shounen', 'Slice of Life': 'Recuentos de la Vida', Sports: 'Deportes', Supernatural: 'Sobrenatural' };
+      return json({ items: GENRES.map((g) => ({ tenant_category: g.toLowerCase(), localization: { title: es ? ES[g] || g : g } })) });
+    }
     if (p === '/content/v2/discover/browse') {
       if (q.get('type') === 'episode') return json({ total: LATEST.length, data: LATEST.slice(start, start + n) });
       let list = SERIES;

@@ -40,7 +40,7 @@ CRP.i18n.add('de', {
   "Temporadas / episodios": "Staffeln / Folgen",
   "AniList": "AniList",
   "página": "Seite",
-  "renovado por CR+ (etp_rt)": "von CR+ erneuert (etp_rt)",
+  "renovado por {app} (etp_rt)": "von {app} erneuert (etp_rt)",
   "anónimo": "anonym",
   "Diagnóstico": "Diagnose",
   "Sesión: {s} · token {src} · cuenta {acc} · perfil {prof}": "Sitzung: {s} · Token {src} · Konto {acc} · Profil {prof}",
@@ -109,7 +109,7 @@ CRP.i18n.add('de', {
   "hace 1 año": "vor 1 Jahr",
 
   // ------------------------------------------------------------- shell & actions
-  "Volver a Crunchyroll+": "Zurück zu Crunchyroll+",
+  "Volver a {app}": "Zurück zu {app}",
   "TU NOTA {n}": "DEINE WERTUNG {n}",
   "EN TU LISTA": "AUF DEINER LISTE",
   "VISTA": "GESEHEN",
@@ -120,7 +120,7 @@ CRP.i18n.add('de', {
   "«{title}» quitada de Mi lista": "„{title}“ aus Meiner Liste entfernt",
   "«{title}» añadida a Mi lista": "„{title}“ zu Meiner Liste hinzugefügt",
   "No se pudo actualizar Mi lista. Inténtalo en la página de la serie.": "Meine Liste konnte nicht aktualisiert werden. Versuch es auf der Seite der Serie.",
-  "Guardada en CR+, pero Crunchyroll no aceptó la valoración.": "In CR+ gespeichert, aber Crunchyroll hat die Bewertung nicht angenommen.",
+  "Guardada en {app}, pero Crunchyroll no aceptó la valoración.": "In {app} gespeichert, aber Crunchyroll hat die Bewertung nicht angenommen.",
   "{n} series quitadas de Mi lista": "{n} Serien aus Meiner Liste entfernt",
   "Deshacer": "Rückgängig",
   "Crunchyroll no aceptó marcarlo como visto.": "Crunchyroll hat das Markieren als gesehen nicht angenommen.",
@@ -147,7 +147,7 @@ CRP.i18n.add('de', {
   "Agenda": "Kalender",
 
   // ------------------------------------------------------------- settings
-  "Ajustes de Crunchyroll+": "Crunchyroll+-Einstellungen",
+  "Ajustes de {app}": "{app}-Einstellungen",
   "Ajustes": "Einstellungen",
   "Cerrar": "Schließen",
   "Idioma de la interfaz": "Sprache der Oberfläche",
@@ -171,7 +171,7 @@ CRP.i18n.add('de', {
   "Consultando AniList de nuevo en segundo plano…": "Frage AniList im Hintergrund erneut ab…",
   "Volver a consultar AniList": "AniList erneut abfragen",
   "Ahorro de datos": "Datensparen",
-  "En el inicio no se carga la página original de Crunchyroll (unos 4 MB de scripts, imágenes y rastreadores que quedarían ocultos detrás de CR+). Si alguna vez falla la sesión, desactívalo.": "Auf der Startseite wird die Originalseite von Crunchyroll nicht geladen (etwa 4 MB Skripte, Bilder und Tracker, die hinter CR+ versteckt blieben). Falls die Sitzung einmal nicht klappt, schalte es aus.",
+  "En el inicio no se carga la página original de Crunchyroll (unos 4 MB de scripts, imágenes y rastreadores que quedarían ocultos detrás de {app}). Si alguna vez falla la sesión, desactívalo.": "Auf der Startseite wird die Originalseite von Crunchyroll nicht geladen (etwa 4 MB Skripte, Bilder und Tracker, die hinter {app} versteckt blieben). Falls die Sitzung einmal nicht klappt, schalte es aus.",
   "Experimental: con algunas sesiones la página se queda en negro. Si te pasa, desactívalo.": "Experimentell: Bei manchen Sitzungen bleibt die Seite schwarz. Falls das passiert, schalte es aus.",
   "Ahorrar datos en el inicio": "Daten auf der Startseite sparen",
   "Cargar sin ahorro de datos": "Ohne Datensparen laden",
@@ -184,7 +184,7 @@ CRP.i18n.add('de', {
   "Reindexar catálogo": "Katalog neu indexieren",
   "Recalcular recomendaciones y agenda": "Empfehlungen und Kalender neu berechnen",
   "Ver inicio original (esta pestaña)": "Original-Startseite zeigen (dieser Tab)",
-  "Desactivar Crunchyroll+": "Crunchyroll+ ausschalten",
+  "Desactivar {app}": "{app} ausschalten",
   "Tu perfil de AniList / MyAnimeList": "Dein AniList- / MyAnimeList-Profil",
   "Importa tu lista pública: lo que ya viste (aunque no fuera en Crunchyroll) y tus notas, que pesan mucho en las recomendaciones.": "Importiere deine öffentliche Liste: was du schon gesehen hast (auch außerhalb von Crunchyroll) und deine Wertungen, die bei Empfehlungen viel zählen.",
   "Enviar mis estrellas (de la ficha) también a Crunchyroll": "Meine Sterne (aus der Schnellansicht) auch an Crunchyroll senden",

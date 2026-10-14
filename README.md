@@ -1,4 +1,6 @@
-# Crunchyroll+
+# Tsugi for Crunchyroll
+
+*(antes «Crunchyroll+»)*
 
 Extensión de Chrome (Manifest V3) que convierte la página de inicio de
 [crunchyroll.com](https://www.crunchyroll.com/) en una **herramienta para decidir qué
@@ -59,6 +61,11 @@ series, reproductor e historial siguen siendo los de Crunchyroll.
 
 Ajustes (⚙): idioma de doblaje que te interesa, listas de 👍 y 👎, reindexar el catálogo,
 recalcular, ver el inicio original o desactivar.
+
+## Novedades 1.0
+
+- **Nuevo nombre: Tsugi** (次, «siguiente»), publicado como «Tsugi for Crunchyroll». Icono propio, sin el logotipo de Crunchyroll; el nombre vive en `CRP.brand` (`src/core/i18n.js`).
+- Preparado para la Chrome Web Store: ficha en 6 idiomas, capturas, imágenes promocionales, política de privacidad, respuestas para la revisión y `npm run package`.
 
 ## Novedades 0.9
 
@@ -175,6 +182,14 @@ Tras cambiar código: botón ↻ de la extensión en `chrome://extensions` y rec
 
 La API no es pública: si Crunchyroll la cambia, alguna parte puede mostrar
 «No se pudo cargar». Desde Ajustes siempre puedes volver al inicio original.
+
+## Publicar
+
+`npm test` y `npm run package` generan `dist/tsugi-<versión>.zip`. La ficha, la política de privacidad y las respuestas para la revisión están en `store/` y `docs/`; los pasos, en `store/README.md`.
+
+### Capturas
+
+Se generan desde el banco de pruebas con datos sintéticos: `dev/harness.html?site=es&shots` (o `site=en`), a 1280×800.
 
 ## Desarrollo sin la extensión
 

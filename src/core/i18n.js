@@ -4,6 +4,9 @@
 // Missing keys fall back to English, then to the Spanish key.
 var CRP = globalThis.CRP || (globalThis.CRP = {});
 
+// The product name lives here only: UI strings say "{app}" and t() fills it in.
+CRP.brand = { name: 'Tsugi', full: 'Tsugi for Crunchyroll', mark: '次' };
+
 CRP.i18n = (() => {
   const LANGS = [
     { id: 'es', name: 'Español (España)', locale: 'es-ES' },
@@ -45,7 +48,10 @@ CRP.i18n = (() => {
 
   function t(key, vars) {
     let s = lookup(key);
-    if (vars) s = s.replace(/\{(\w+)\}/g, (m, k) => (vars[k] != null ? vars[k] : m));
+    if (s.includes('{')) {
+      const v = { app: CRP.brand.name, ...(vars || {}) };
+      s = s.replace(/\{(\w+)\}/g, (m, k) => (v[k] != null ? v[k] : m));
+    }
     return s;
   }
 

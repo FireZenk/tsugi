@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tsugi for Crunchyroll — Privacidad / Privacy</title>
+<style>
+  :root { color-scheme: light dark; --fg: #1d1d24; --muted: #5a5a68; --bg: #fff; --accent: #f26a10; }
+  @media (prefers-color-scheme: dark) { :root { --fg: #ececf1; --muted: #a0a0b0; --bg: #0d0d12; } }
+  body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 -apple-system, "Segoe UI", Roboto, sans-serif; }
+  main { max-width: 760px; margin: 0 auto; padding: 40px 20px 80px; }
+  h1 { font-size: 28px; margin: 0 0 4px; } h2 { margin-top: 36px; font-size: 20px; } h3 { font-size: 16px; margin-top: 22px; }
+  .muted { color: var(--muted); } a { color: var(--accent); }
+  nav a { margin-right: 14px; }
+  li { margin: 4px 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Tsugi for Crunchyroll</h1>
+  <p class="muted">Política de privacidad · Privacy policy — última actualización / last updated: 2026-10-14</p>
+  <nav><a href="#es">Español</a><a href="#en">English</a></nav>
+
+  <section id="es">
+    <h2>Español</h2>
+    <p>Tsugi es una extensión de Chrome que sustituye la página de inicio de Crunchyroll por una herramienta para decidir qué ver. Es un proyecto independiente, no afiliado a Crunchyroll.</p>
+
+    <h3>Resumen</h3>
+    <ul>
+      <li>No tenemos servidores: no recogemos, vendemos ni compartimos tus datos.</li>
+      <li>No hay cuentas, publicidad, analítica ni rastreadores.</li>
+      <li>Todo se procesa y se guarda en tu navegador.</li>
+    </ul>
+
+    <h3>Qué datos usa y para qué</h3>
+    <ul>
+      <li><b>Tu sesión de Crunchyroll.</b> La extensión usa la sesión que ya tienes abierta en crunchyroll.com para consultar la API de Crunchyroll en tu nombre: catálogo, historial, Mi lista, «Sigue viendo», marcar episodios como vistos y tus valoraciones. Guarda en tu navegador los parámetros con los que la propia web renueva la sesión (no tu contraseña) para poder renovarla igual que ella. Nada de esto sale de tu navegador salvo hacia crunchyroll.com.</li>
+      <li><b>Datos locales.</b> En el almacenamiento de la extensión se guardan: el índice del catálogo, cachés, tus 👍/👎, estrellas, cola, estanterías y ajustes. Los ajustes y estanterías usan la sincronización de Chrome si la tienes activada (los gestiona Google, no nosotros).</li>
+      <li><b>AniList</b> (graphql.anilist.co): se envían títulos e identificadores de series para obtener notas, temas, estudios y horarios. Si importas tu lista, también tu nombre de usuario público de AniList.</li>
+      <li><b>Jikan</b> (api.jikan.moe, API no oficial de MyAnimeList): se envían identificadores de MyAnimeList de series para obtener su nota y qué episodios son relleno.</li>
+      <li><b>MyAnimeList</b> (myanimelist.net): solo si importas tu lista; se envía tu nombre de usuario público para leerla.</li>
+      <li><b>YouTube</b> (youtube-nocookie.com): solo si pulsas para ver un tráiler.</li>
+      <li><b>Avisos de estreno.</b> Cada 15 minutos la extensión consulta, sin tu sesión ni cookies, la lista pública de episodios nuevos de Crunchyroll y la compara con las series que sigues (guardadas en tu navegador).</li>
+      <li><b>Diagnóstico.</b> El informe de diagnóstico solo se genera si lo pides y se copia a tu portapapeles; los identificadores aparecen enmascarados y no incluye tokens.</li>
+    </ul>
+
+    <h3>Tus opciones</h3>
+    <ul>
+      <li>Puedes desactivar las valoraciones externas, los avisos o la importación de listas en los ajustes de la extensión.</li>
+      <li>Al desinstalar la extensión, Chrome borra todos sus datos locales.</li>
+    </ul>
+
+    <h3>Contacto</h3>
+    <p>[correo de contacto]</p>
+  </section>
+
+  <section id="en">
+    <h2>English</h2>
+    <p>Tsugi is a Chrome extension that replaces the Crunchyroll home page with a tool for deciding what to watch. It is an independent project, not affiliated with Crunchyroll.</p>
+
+    <h3>Summary</h3>
+    <ul>
+      <li>We have no servers: we don't collect, sell or share your data.</li>
+      <li>No accounts, ads, analytics or trackers.</li>
+      <li>Everything is processed and stored in your browser.</li>
+    </ul>
+
+    <h3>What data is used and why</h3>
+    <ul>
+      <li><b>Your Crunchyroll session.</b> The extension uses the session you already have on crunchyroll.com to call Crunchyroll's API on your behalf: catalog, watch history, My List, Continue Watching, marking episodes as watched and your ratings. It keeps in your browser the parameters the website itself uses to renew the session (not your password) so it can renew it the same way. None of this leaves your browser except towards crunchyroll.com.</li>
+      <li><b>Local data.</b> The extension's storage holds the catalog index, caches, your 👍/👎, star ratings, queue, shelves and settings. Settings and shelves use Chrome sync if you have it turned on (handled by Google, not by us).</li>
+      <li><b>AniList</b> (graphql.anilist.co): series titles and ids are sent to get scores, themes, studios and airing times; if you import your list, also your public AniList user name.</li>
+      <li><b>Jikan</b> (api.jikan.moe, unofficial MyAnimeList API): MyAnimeList series ids are sent to get scores and which episodes are filler.</li>
+      <li><b>MyAnimeList</b> (myanimelist.net): only if you import your list; your public user name is sent to read it.</li>
+      <li><b>YouTube</b> (youtube-nocookie.com): only when you click to watch a trailer.</li>
+      <li><b>Release notifications.</b> Every 15 minutes the extension checks Crunchyroll's public list of new episodes, without your session or cookies, and compares it with the series you follow (kept in your browser).</li>
+      <li><b>Diagnostics.</b> The diagnostics report is only generated when you ask for it and is copied to your clipboard; ids are masked and it contains no tokens.</li>
+    </ul>
+
+    <h3>Your choices</h3>
+    <ul>
+      <li>External ratings, notifications and list import can be turned off in the extension's settings.</li>
+      <li>Uninstalling the extension makes Chrome delete all of its local data.</li>
+    </ul>
+
+    <h3>Contact</h3>
+    <p>[contact e-mail]</p>
+  </section>
+</main>
+</body>
+</html>

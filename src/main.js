@@ -55,7 +55,7 @@
     try {
       app = CRP.app.mount();
     } catch (e) {
-      console.error('[CR+] mount failed', e);
+      console.error('[Tsugi] mount failed', e);
       CRP.boot.step('mount failed: ' + (e && e.message));
     }
   }
@@ -72,7 +72,7 @@
       pill.id = 'crp-pill';
       const shadow = pill.attachShadow({ mode: 'open' });
       const b = document.createElement('button');
-      b.textContent = t('Volver a Crunchyroll+');
+      b.textContent = t('Volver a {app}');
       b.style.cssText = 'all:initial;font:600 13px system-ui,sans-serif;color:#fff;background:#f47521;padding:10px 16px;border-radius:999px;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,.4)';
       b.addEventListener('click', () => { bypassThisPage = false; pill.remove(); pill = null; sync(); });
       shadow.append(b);
@@ -99,13 +99,13 @@
     ready = true;
     sync();
   };
-  CRP.store.load().then(loaded, (e) => { console.warn('[CR+] settings failed', e); loaded(null); });
+  CRP.store.load().then(loaded, (e) => { console.warn('[Tsugi] settings failed', e); loaded(null); });
 
   // Watchdog: CR+ must be on screen within 10 s. Otherwise never leave a black page:
   // without the original page (data saver) load it as before; else show it.
   setTimeout(() => {
     if (!root.classList.contains('crp-on') || CRP.boot.visible) return;
-    console.warn('[CR+] not shown after 10 s; start-up trail:', CRP.boot.trail.join(' → '));
+    console.warn('[Tsugi] not shown after 10 s; start-up trail:', CRP.boot.trail.join(' → '));
     try { localStorage.setItem('crp-last-stall', new Date().toISOString() + ' ' + CRP.boot.trail.join(' → ')); } catch (e) { /* ignore */ }
     if (CRP.api.isPageless() && CRP.saver.fail('stalled at ' + CRP.boot.last())) return;
     bypassThisPage = true;

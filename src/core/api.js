@@ -97,7 +97,7 @@ CRP.api = (() => {
     if (!params.get('device_type')) params.set('device_type', deviceType());
     if (auth && auth.profileId) params.set('profile_id', auth.profileId);
     const res = await postToken(t.authorization || 'Basic ' + btoa(ACCOUNT_CLIENT + ':'), params);
-    accept(res, null, 'renovado por CR+ (etp_rt)');
+    accept(res, null, 'renovado por {app} (etp_rt)');
     return auth;
   }
 

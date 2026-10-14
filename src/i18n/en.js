@@ -40,7 +40,7 @@ CRP.i18n.add('en', {
   "Temporadas / episodios": "Seasons / episodes",
   "AniList": "AniList",
   "página": "page",
-  "renovado por CR+ (etp_rt)": "renewed by CR+ (etp_rt)",
+  "renovado por {app} (etp_rt)": "renewed by {app} (etp_rt)",
   "anónimo": "anonymous",
   "Diagnóstico": "Diagnostics",
   "Sesión: {s} · token {src} · cuenta {acc} · perfil {prof}": "Session: {s} · token {src} · account {acc} · profile {prof}",
@@ -109,7 +109,7 @@ CRP.i18n.add('en', {
   "hace 1 año": "1 year ago",
 
   // ------------------------------------------------------------- shell & actions
-  "Volver a Crunchyroll+": "Back to Crunchyroll+",
+  "Volver a {app}": "Back to {app}",
   "TU NOTA {n}": "YOUR SCORE {n}",
   "EN TU LISTA": "IN YOUR LIST",
   "VISTA": "WATCHED",
@@ -120,7 +120,7 @@ CRP.i18n.add('en', {
   "«{title}» quitada de Mi lista": "“{title}” removed from My List",
   "«{title}» añadida a Mi lista": "“{title}” added to My List",
   "No se pudo actualizar Mi lista. Inténtalo en la página de la serie.": "Couldn't update My List. Try on the series page.",
-  "Guardada en CR+, pero Crunchyroll no aceptó la valoración.": "Saved in CR+, but Crunchyroll didn't accept the rating.",
+  "Guardada en {app}, pero Crunchyroll no aceptó la valoración.": "Saved in {app}, but Crunchyroll didn't accept the rating.",
   "{n} series quitadas de Mi lista": "{n} series removed from My List",
   "Deshacer": "Undo",
   "Crunchyroll no aceptó marcarlo como visto.": "Crunchyroll didn't accept marking it as watched.",
@@ -147,7 +147,7 @@ CRP.i18n.add('en', {
   "Agenda": "Calendar",
 
   // ------------------------------------------------------------- settings
-  "Ajustes de Crunchyroll+": "Crunchyroll+ settings",
+  "Ajustes de {app}": "{app} settings",
   "Ajustes": "Settings",
   "Cerrar": "Close",
   "Idioma de la interfaz": "Interface language",
@@ -171,7 +171,7 @@ CRP.i18n.add('en', {
   "Consultando AniList de nuevo en segundo plano…": "Checking AniList again in the background…",
   "Volver a consultar AniList": "Check AniList again",
   "Ahorro de datos": "Data saver",
-  "En el inicio no se carga la página original de Crunchyroll (unos 4 MB de scripts, imágenes y rastreadores que quedarían ocultos detrás de CR+). Si alguna vez falla la sesión, desactívalo.": "The original Crunchyroll home page isn't loaded (about 4 MB of scripts, images and trackers that would sit hidden behind CR+). If your session ever fails, turn this off.",
+  "En el inicio no se carga la página original de Crunchyroll (unos 4 MB de scripts, imágenes y rastreadores que quedarían ocultos detrás de {app}). Si alguna vez falla la sesión, desactívalo.": "The original Crunchyroll home page isn't loaded (about 4 MB of scripts, images and trackers that would sit hidden behind {app}). If your session ever fails, turn this off.",
   "Experimental: con algunas sesiones la página se queda en negro. Si te pasa, desactívalo.": "Experimental: with some sessions the page stays black. If that happens, turn it off.",
   "Ahorrar datos en el inicio": "Save data on the home page",
   "Cargar sin ahorro de datos": "Load without data saver",
@@ -184,7 +184,7 @@ CRP.i18n.add('en', {
   "Reindexar catálogo": "Reindex catalog",
   "Recalcular recomendaciones y agenda": "Recompute recommendations and calendar",
   "Ver inicio original (esta pestaña)": "Show original home (this tab)",
-  "Desactivar Crunchyroll+": "Turn off Crunchyroll+",
+  "Desactivar {app}": "Turn off {app}",
   "Tu perfil de AniList / MyAnimeList": "Your AniList / MyAnimeList profile",
   "Importa tu lista pública: lo que ya viste (aunque no fuera en Crunchyroll) y tus notas, que pesan mucho en las recomendaciones.": "Import your public list: what you've already watched (even outside Crunchyroll) and your scores, which weigh a lot in recommendations.",
   "Enviar mis estrellas (de la ficha) también a Crunchyroll": "Also send my stars (from the quick view) to Crunchyroll",

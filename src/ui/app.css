@@ -1,4 +1,4 @@
-/* Crunchyroll+ — styles for the shadow-DOM app. */
+/* Tsugi — styles for the shadow-DOM app. */
 :host {
   --bg: #0c0c11;
   --panel: #15151d;
@@ -53,9 +53,9 @@ header.top {
   backdrop-filter: saturate(1.4) blur(14px);
   border-bottom: 1px solid rgba(255, 255, 255, .06);
 }
-.logo { display: flex; align-items: baseline; font-weight: 800; font-size: 19px; letter-spacing: -.02em; white-space: nowrap; }
-.logo span { color: var(--accent); }
-.logo b { color: var(--text); font-size: 22px; margin-left: 1px; }
+.logo { display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 19px; letter-spacing: -.01em; white-space: nowrap; }
+.logo .mark { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 15px; font-weight: 700; line-height: 1; }
+.logo b { color: var(--text); }
 nav.tabs { display: flex; gap: 2px; background: var(--panel); border: 1px solid var(--line); border-radius: 11px; padding: 3px; }
 nav.tabs button { display: flex; align-items: center; gap: 7px; padding: 7px 13px; border-radius: 8px; color: var(--muted); font-weight: 700; font-size: 13.5px; white-space: nowrap; }
 nav.tabs button:hover { color: var(--text); }
@@ -508,7 +508,7 @@ a.card:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; bo
 /* filler / recap (quick view, cards, agenda) */
 .qvfiller { padding: 14px 22px 0; display: flex; flex-direction: column; gap: 8px; }
 .qvfiller:empty { display: none; }
-.qvfiller h3 { margin: 0; }
+.qvfiller h3 { margin: 0; padding: 0; }
 .qvfiller .fsum { margin: 0; color: var(--text); }
 .qvfiller .fstrip { height: 10px; border-radius: 5px; background: var(--fill-canon); }
 .qvfiller .franges { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }

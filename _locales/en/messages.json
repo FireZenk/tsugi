@@ -1,3 +1,5 @@
 {
-  "description": { "message": "Turns the Crunchyroll home page into a tool: real filters (dub, length, rating…) across the whole catalog, recommendations you control, a release calendar and your backlog." }
+  "description": {
+    "message": "What to watch next on Crunchyroll: real filters across the whole catalog, recommendations you steer, a calendar, filler info."
+  }
 }

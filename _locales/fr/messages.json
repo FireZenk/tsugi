@@ -1,3 +1,5 @@
 {
-  "description": { "message": "Transforme l'accueil de Crunchyroll en outil : vrais filtres (doublage, durée, note…) sur tout le catalogue, recommandations que vous pilotez, calendrier des sorties et épisodes en retard." }
+  "description": {
+    "message": "Quoi regarder ensuite sur Crunchyroll : vrais filtres sur tout le catalogue, recommandations, calendrier et filler."
+  }
 }

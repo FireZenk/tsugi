@@ -63,7 +63,7 @@ CRP.views.stats = (ctx) => {
       top ? t('Lo más visto: {title} ({hours}).', { title: top.title, hours: hours(top.minutes) }) : null,
       st.topGenres[0] ? t('Género favorito: {g}.', { g: M.genreTitle(st.topGenres[0].id) }) : null,
       st.streak.days > 1 ? t('Racha: {n} días seguidos.', { n: st.streak.days }) : null,
-      '— Crunchyroll+',
+      '— ' + CRP.brand.full,
     ].filter(Boolean).join('\n');
   }
 
