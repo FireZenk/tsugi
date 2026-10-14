@@ -15,6 +15,8 @@ CRP.store = (() => {
     // replaced `dataSaver` (on by default in 0.6.0-0.6.3), which could leave a black page.
     dataSaverOptIn: false,
     uiLang: 'auto',        // interface language ('auto' = from the site language)
+    noSpoilers: false,     // blur titles, thumbnails and descriptions of unwatched episodes
+    noSpoilersSite: true,  // … also on Crunchyroll's own series and player pages
   };
 
   let settings = null;

@@ -33,8 +33,16 @@
     if (!document.head) root.prepend(document.createElement('head'));
     document.title = 'Crunchyroll';
   }
+  // Spoiler-free mode on Crunchyroll's own pages (styles in boot.css), applied before
+  // anything renders thanks to the mirrored flag.
+  let noSpoil = flag('crp-nospoil') === '1';
+  const applyNoSpoil = () => root.classList.toggle('crp-nospoil', noSpoil);
+  applyNoSpoil();
   const mirror = (s) => {
+    noSpoil = s.enabled !== false && !!s.noSpoilers && s.noSpoilersSite !== false;
+    applyNoSpoil();
     try {
+      localStorage.setItem('crp-nospoil', noSpoil ? '1' : '0');
       localStorage.setItem('crp-enabled', s.enabled === false ? '0' : '1');
       localStorage.setItem('crp-datasaver-optin', s.dataSaverOptIn === true ? '1' : '0');
       localStorage.removeItem('crp-datasaver');   // pre-0.6.4 flag (saver on by default)
@@ -120,6 +128,7 @@
   // The site's own scripts may rewrite <html class>; keep ours while active.
   new MutationObserver(() => {
     if ((app || (!ready && wanted())) && !root.classList.contains('crp-on')) root.classList.add('crp-on');
+    if (noSpoil && !root.classList.contains('crp-nospoil')) root.classList.add('crp-nospoil');
   }).observe(root, { attributes: true, attributeFilter: ['class'] });
 
 })();

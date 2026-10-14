@@ -31,3 +31,21 @@ html:not(.crp-on) #crp-host {
   bottom: 20px;
   z-index: 2147483646;
 }
+
+/* Spoiler-free mode on Crunchyroll's own pages (series lists, player "up next"):
+   episode titles, thumbnails and descriptions are blurred until hovered for half a
+   second. Cards already started (they show a progress bar) are left alone
+   ("progressive-image-loading" is not one: match the bar classes only).
+   Class names are CSS-module hashed ("playable-card__title--rgmp7"): match prefixes. */
+html.crp-nospoil [class*="playable-card--"]:not(:has([class*="progress-bar"], [class*="__progress--"])) :is([class*="playable-card__title--"], [class*="playable-card-hover__title--"], [class*="playable-card-hover__description--"]) {
+  filter: blur(6px);
+  transition: filter .15s;
+}
+html.crp-nospoil [class*="playable-card--"]:not(:has([class*="progress-bar"], [class*="__progress--"])) [class*="playable-thumbnail__image--"] {
+  filter: blur(16px) brightness(.75);
+  transition: filter .15s;
+}
+html.crp-nospoil [class*="playable-card--"] :is([class*="playable-card__title--"], [class*="playable-card-hover__title--"], [class*="playable-card-hover__description--"], [class*="playable-thumbnail__image--"]):hover {
+  filter: none;
+  transition: filter .2s .5s;
+}

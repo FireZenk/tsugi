@@ -564,3 +564,11 @@ a.card:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; bo
   .trow { grid-template-columns: 22px 34px minmax(0, 1fr) 60px; }
   .trow .tbar { display: none; }
 }
+
+/* ----------------------------------------------------- spoiler-free mode */
+.bpart { overflow: hidden; }
+.bpart .bpimg { position: absolute; inset: 0; background: center / cover no-repeat; }
+.app.nospoil .spoil { filter: blur(6px); transition: filter .15s; }
+.app.nospoil img.spoil, .app.nospoil .bpimg.spoil { filter: blur(16px) brightness(.75); }
+/* reveal on a deliberate hover (half a second), not while just passing by */
+.app.nospoil .spoil:hover, .app.nospoil .bpart:hover .bpimg.spoil, .app.nospoil a:focus-visible .spoil { filter: none; transition: filter .2s .5s; }

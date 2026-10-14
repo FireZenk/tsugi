@@ -112,16 +112,20 @@ CRP.ui = (() => {
       title: a.title,
       onclick: (ev) => { ev.preventDefault(); ev.stopPropagation(); a.run(ev); },
     }, icon(a.icon, 16)));
-    return h('a.card.ep', { href: M.episodeUrl(e), dataset: { sid: e.seriesId, eid: e.id }, title: `${e.seriesTitle || ''} — ${e.title}` },
+    // spoiler-free mode: an episode you haven't started keeps its title and image hidden
+    const hide = !(progress > 0) && CRP.store.get().noSpoilers;
+    const thumb = img(e.thumb, hide ? '' : e.title);
+    if (!(progress > 0)) thumb.classList.add('spoil');
+    return h('a.card.ep', { href: M.episodeUrl(e), dataset: { sid: e.seriesId, eid: e.id }, title: hide ? (e.seriesTitle || '') : `${e.seriesTitle || ''} — ${e.title}` },
       h('div.art',
-        img(e.thumb, e.title),
+        thumb,
         h('span.playbtn', icon('play', 26)),
         badge ? h('span.badge', badge) : null,
         buttons.length ? h('div.acts', buttons) : null,
         progress > 0 ? h('div.progress', h('i', { style: { width: clamp(progress * 100, 3, 100) + '%' } })) : null,
       ),
       h('div.title', e.seriesTitle || e.title),
-      h('div.meta', h('span', [M.epLabel(e), e.kind !== 'movie' ? e.title : null].filter(Boolean).join(' — '))),
+      h('div.meta', h('span', M.epLabel(e)), e.kind !== 'movie' && e.title ? [' — ', h('span' + (progress > 0 ? '' : '.spoil'), e.title)] : null),
       sub || left ? h('div.sub', sub || t('Quedan {n} min', { n: left })) : null,
       extra || null,
     );

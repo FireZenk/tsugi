@@ -78,3 +78,18 @@ test('MAL list import pages through 300-item pages', async () => {
   const r = await new Promise((res) => b.listeners.message({ type: 'mal-list', user: 'x' }, null, res));
   assert.strictEqual(r.items.length, 301);
 });
+
+test('spoiler-free mode leaves the episode title out of notifications', async () => {
+  const b = boot();
+  b.store.local['notify:watch'] = { locale: 'es-ES', prefix: '/es-es', items: [{ id: 'A', title: 'A', audios: ['ja-JP'] }] };
+  b.store.local['notify:seen'] = ['x'];
+  b.net.feed = [ep('e7', 'A', 'ja-JP')];
+  b.store.sync.settings.noSpoilers = true;
+  await b.sandbox.poll();
+  assert.strictEqual(b.notes.length, 1);
+  assert.doesNotMatch(b.notes[0].message, /Ep e7/);
+  b.store.sync.settings.noSpoilers = false;
+  b.net.feed = [ep('e8', 'A', 'ja-JP')];
+  await b.sandbox.poll();
+  assert.match(b.notes[1].message, /Ep e8/);
+});

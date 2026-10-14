@@ -45,7 +45,7 @@ async function malList(user) {
 // -------------------------------------------------------------- notifications
 async function settings() {
   const s = (await chrome.storage.sync.get('settings')).settings || {};
-  return { enabled: s.enabled !== false, notify: s.notify !== false, uiLang: s.uiLang || 'auto' };
+  return { enabled: s.enabled !== false, notify: s.notify !== false, uiLang: s.uiLang || 'auto', noSpoilers: !!s.noSpoilers };
 }
 
 let token = null;
@@ -111,7 +111,7 @@ async function poll(force = false) {
       fresh.push({
         id: e.id,
         title: m.series_title || f.title,
-        line: epLine(m.season_number || 1, m.episode_number ?? '?', e.title) + langSuffix(m.audio_locale),
+        line: epLine(m.season_number || 1, m.episode_number ?? '?', st.noSpoilers ? null : e.title) + langSuffix(m.audio_locale),
         url: `${CR}${watch.prefix || ''}/watch/${e.id}/${e.slug_title || ''}`,
       });
     }

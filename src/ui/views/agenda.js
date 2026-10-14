@@ -19,7 +19,7 @@ CRP.views.agenda = (ctx) => {
     if (!s.next) return null;
     const canon = ctx.canonAfter(s);
     return [
-      h('a.btn.small', { href: M.episodeUrl(s.next), title: s.next.title }, ui.icon('play', 14), M.epLabel(s.next)),
+      h('a.btn.small', { href: M.episodeUrl(s.next), title: CRP.store.get().noSpoilers ? '' : s.next.title }, ui.icon('play', 14), M.epLabel(s.next)),
       canon ? h('a.btn.ghost.small', { href: M.episodeUrl(canon.ep), title: canon.skipped === 1 ? t('Te saltas 1 episodio de relleno') : t('Te saltas {n} episodios de relleno', { n: canon.skipped }) }, t('Saltar relleno → {ep}', { ep: M.epLabel(canon.ep) })) : null,
       h('button.btn.ghost.small.icononly', { title: t('Marcar {ep} como visto', { ep: M.epLabel(s.next) }), onclick: () => ctx.markWatched({ ...s.next, seriesId: s.id, seriesTitle: s.title }) }, ui.icon('check', 14)),
     ];
@@ -48,7 +48,7 @@ CRP.views.agenda = (ctx) => {
           h('div.wt', h('div.wn', it.series.title), h('div.wm', [label, fmtTime(new Date(it.t)), it.predicted ? t('estimado') : null, it.watched ? t('vista') : null].filter(Boolean).join(' · '))),
         ];
         return it.ep && it.ep.id && !future
-          ? h('a.witem.' + state, { href: M.episodeUrl(it.ep), title: it.ep.title }, inner)
+          ? h('a.witem.' + state, { href: M.episodeUrl(it.ep), title: it.watched || !CRP.store.get().noSpoilers ? it.ep.title : '' }, inner)
           : h('button.witem.' + state, { onclick: () => openSeries(it.series) }, inner);
       }) : h('div.wempty', '—'),
     )));

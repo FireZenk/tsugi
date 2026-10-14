@@ -707,4 +707,10 @@ CRP.i18n.add('en', {
   "Leyendo tu historial completo de Crunchyroll…": "Reading your full Crunchyroll history…",
   "{n} páginas leídas": "{n} pages read",
   "Estadísticas": "Stats",
+
+  // ------------------------------------------------------------- no spoilers
+  "Sin spoilers": "No spoilers",
+  "Difumina el título, la miniatura y la descripción de los episodios que aún no has visto. Se ven al dejar el ratón encima.": "Blurs the title, thumbnail and description of episodes you haven't watched yet. Hover over them for a moment to see them.",
+  "Ocultar spoilers de episodios": "Hide episode spoilers",
+  "También en las páginas de series y el reproductor de Crunchyroll": "Also on Crunchyroll's series pages and player",
 });

@@ -376,6 +376,10 @@ CRP.app = (() => {
           ? h('ul.hiddenlist', liked.slice(0, 60).map((x) => h('li', h('span', x.title || x.id),
             h('button.btn.ghost.small', { onclick: async () => { await store.unlike(x.id); ctx.emit('taste'); render(); } }, t('Quitar')))))
           : h('p.hint', t('Usa 👍 para que una serie cuente como referencia de tu gusto.')),
+        h('h4', t('Sin spoilers')),
+        h('p.hint', t('Difumina el título, la miniatura y la descripción de los episodios que aún no has visto. Se ven al dejar el ratón encima.')),
+        ui.toggle(t('Ocultar spoilers de episodios'), !!s.noSpoilers, (v) => store.set({ noSpoilers: v }).then(onChange)),
+        s.noSpoilers ? ui.toggle(t('También en las páginas de series y el reproductor de Crunchyroll'), s.noSpoilersSite !== false, (v) => store.set({ noSpoilersSite: v })) : null,
         h('h4', t('Valoraciones externas')),
         h('p.hint', t('Añade la nota de AniList (y la de MyAnimeList en la ficha). Solo se envían títulos de series, nada de tu cuenta.')),
         ui.toggle(t('Usar AniList / MyAnimeList'), s.ext !== false, (v) => store.set({ ext: v }).then(() => { if (v) startEnrichment(ctx); onChange(); })),
@@ -635,6 +639,7 @@ CRP.app = (() => {
       main.replaceChildren();
       views = {};
       labelInput();   // the UI language may have changed
+      app.classList.toggle('nospoil', !!store.get().noSpoilers);
       ctx = createCtx(shadow, auth);
       await Promise.race([Promise.all([ctx.data.categories().catch(() => {}), CRP.ext.load()]), new Promise((r) => setTimeout(r, 1500))]);
       await Promise.all([CRP.profile.load().catch(() => {}), CRP.filler.load().catch(() => {})]);

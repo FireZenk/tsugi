@@ -181,11 +181,11 @@ CRP.views.today = (ctx) => {
       const e = c.e;
       const canon = ctx.canonAfter(c.series);
       return h('div.bigpick',
-        h('a.bpart', { href: M.episodeUrl(e), style: e.thumb ? { backgroundImage: `url("${e.thumb}")` } : null }, h('span.playbtn.on', ui.icon('play', 40))),
+        h('a.bpart', { href: M.episodeUrl(e) }, e.thumb ? h('span.bpimg.spoil', { style: { backgroundImage: `url("${e.thumb}")` } }) : null, h('span.playbtn.on', ui.icon('play', 40))),
         h('div.bptext',
           h('div.bplabel', fillerTag(c.series.id, e), c.label),
           h('h3', e.seriesTitle || c.series.title),
-          h('div.bpsub', `${M.epLabel(e)} — ${e.title}`),
+          h('div.bpsub', M.epLabel(e), e.title ? [' — ', h('span.spoil', e.title)] : null),
           h('div.bpacts',
             h('a.btn', { href: M.episodeUrl(e) }, ui.icon('play', 16), t('Ver ahora')),
             canon ? h('a.btn.ghost', { href: M.episodeUrl(canon.ep), title: canon.skipped === 1 ? t('Te saltas 1 episodio de relleno') : t('Te saltas {n} episodios de relleno', { n: canon.skipped }) }, t('Saltar relleno → {ep}', { ep: M.epLabel(canon.ep) })) : null,
@@ -210,7 +210,9 @@ CRP.views.today = (ctx) => {
 
   function miniCard(c) {
     if (c.kind === 'ep') {
-      return h('a.altpick', { href: M.episodeUrl(c.e) }, ui.img(c.e.thumb, c.e.title, 'altimg'),
+      const im = ui.img(c.e.thumb, '', 'altimg');
+      im.classList.add('spoil');
+      return h('a.altpick', { href: M.episodeUrl(c.e) }, im,
         h('div', h('b', c.e.seriesTitle || c.series.title), h('small', fillerTag(c.series.id, c.e), `${M.epLabel(c.e)} · ${c.label}`)));
     }
     return h('button.altpick', { onclick: () => ctx.openSeries(c.s, { reason: c.why }) }, ui.img(c.s.wide || c.s.poster, c.s.title, 'altimg'),

@@ -60,6 +60,12 @@ series, reproductor e historial siguen siendo los de Crunchyroll.
 Ajustes (⚙): idioma de doblaje que te interesa, listas de 👍 y 👎, reindexar el catálogo,
 recalcular, ver el inicio original o desactivar.
 
+## Novedades 0.9
+
+- **Sin spoilers** (Ajustes, desactivado por defecto): difumina el título, la miniatura y la descripción de los episodios que aún no has visto; se ven al dejar el ratón encima medio segundo.
+  - En CR+ (Hoy, Sigue viendo, Agenda) y, si quieres, también en las páginas de series y el reproductor de Crunchyroll (las tarjetas ya empezadas se dejan como están).
+  - Los avisos de estreno dejan de incluir el título del episodio.
+
 ## Novedades 0.8
 
 - **Estadísticas** (nueva pestaña, tecla `5`), calculadas en tu navegador con tu historial completo de Crunchyroll:
