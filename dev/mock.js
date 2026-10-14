@@ -236,6 +236,19 @@
     const url = new URL(input instanceof Request ? input.url : String(input), location.href);
     if (url.hostname === 'graphql.anilist.co') return anilistMock(JSON.parse(init.body || '{}'));
     if (url.hostname === 'api.jikan.moe') {
+      // /anime/{id}/episodes: some entries have filler (every 7th, plus 30–36) and recaps (every 25th)
+      const ep = url.pathname.match(/\/anime\/(\d+)\/episodes$/);
+      if (ep) {
+        const id = +ep[1];
+        const total = 24 + (id % 5) * 24;
+        const page = +(url.searchParams.get('page') || 1);
+        const withFiller = id % 4 === 0;
+        const data = [];
+        for (let n = (page - 1) * 100 + 1; n <= Math.min(total, page * 100); n++) {
+          data.push({ mal_id: n, title: 'Episode ' + n, filler: withFiller && (n % 7 === 0 || (n >= 30 && n <= 36) || (id % 16 === 0 && n >= 13 && n <= 15)), recap: withFiller && n % 25 === 0 });
+        }
+        return json({ pagination: { last_visible_page: Math.ceil(total / 100), has_next_page: page * 100 < total }, data });
+      }
       const id = +url.pathname.split('/').pop();
       return json({ data: { score: 6 + (id % 35) / 10, scored_by: 1000 * (id % 900), rank: id % 3000, url: `https://myanimelist.net/anime/${id}` } });
     }

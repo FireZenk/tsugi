@@ -147,6 +147,13 @@ CRP.catalog = (() => {
     if (on('tags') && F.tagsOut && F.tagsOut.length) p.push((x) => { const t = CRP.ext.themes(x.id); return !t || !F.tagsOut.some((n) => t.has(n)); });
     if (on('studio') && F.studio) p.push((x) => CRP.ext.studios(x.id).includes(F.studio));
     if (on('source') && F.source) p.push((x) => CRP.ext.source(x.id) === F.source);
+    // filler share (MAL); long series not checked yet are left out, unknown short ones kept
+    if (on('filler') && F.fillerMax != null && CRP.filler) {
+      p.push((x) => {
+        const s = CRP.filler.share(x.id);
+        return s != null ? s <= F.fillerMax + 1e-9 : !(x.episodes >= CRP.filler.LONG && CRP.filler.hasMal(x.id));
+      });
+    }
     if (on('mine') && F.mine && ctx) p.push((x) => mine(F.mine, x, ctx));
     if (on('mature') && F.noMature) p.push((x) => !x.mature && !/MA|18/.test(x.maturity || ''));
     if (on('text') && F.text) {

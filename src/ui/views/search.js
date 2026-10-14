@@ -175,6 +175,11 @@ CRP.views.search = (ctx) => {
       { id: 'airing', title: t('En emisión'), value: 'airing', patch: { status: 'airing' }, active: (f) => f.status === 'airing' },
       { id: 'finished', title: t('Terminada'), value: 'finished', patch: { status: 'finished' }, active: (f) => f.status === 'finished' },
     ], F));
+    groups.push(radioGroup(t('Relleno'), 'fillerMax', [
+      { id: 'any', title: t('Cualquiera') },
+      { id: 'none', title: t('Sin relleno'), value: 0, patch: { fillerMax: 0 }, active: (f) => f.fillerMax === 0 },
+      { id: 'low', title: t('Poco relleno (≤ 10 %)'), value: 0.1, patch: { fillerMax: 0.1 }, active: (f) => f.fillerMax === 0.1 },
+    ], F, 'filler'));
     if (index && index.tags && index.tags.length) {
       groups.push(radioGroup(t('Temporada'), 'season', [{ id: 'any', title: t('Cualquiera') }].concat(index.tags.map((tag) => (
         { id: tag.id, title: tag.title, value: tag.id, patch: { season: tag.id }, active: (f) => f.season === tag.id }))), F));
@@ -279,6 +284,7 @@ CRP.views.search = (ctx) => {
   ctx.on('watchlist', 'search', () => cat.current() && render());
   ctx.on('taste', 'search', () => cat.current() && render());
   ctx.on('ext', 'search', () => cat.current() && el.isConnected && render());
+  ctx.on('filler', 'search', () => cat.current() && el.isConnected && last && last.F.fillerMax != null && render());
   start();
 
   return {

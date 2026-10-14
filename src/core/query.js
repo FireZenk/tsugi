@@ -114,6 +114,7 @@ CRP.query = (() => {
         season: 'esta temporada|temporada actual|de la temporada|de este trimestre',
         airing: 'en emision|emitiendose|en directo|simulcasts?|semanal(?:es)?|saliendo', finished: 'terminad[ao]s?|acabad[ao]s?|complet[ao]s?|finalizad[ao]s?',
         gems: 'joyas?(?: ocultas?)?|desconocidas?|poco conocidas?|infravaloradas?', popular: 'populares?|famosas?|conocidas?|mas vistas?|de moda',
+        noFiller: 'sin relleno|nada de relleno|cero relleno', lowFiller: 'poco relleno|casi sin relleno',
         dubbed: 'doblad[ao]s?|doblaje', ep: 'ep|eps|episodios?|caps?|capitulos?', rating: 'nota|puntuacion|valoracion|estrellas?',
         less: 'menos de|como mucho|maximo|max|hasta', more: 'mas de|minimo|min|al menos', since: 'desde|despues de|a partir de|posteriores? a',
         until: 'antes de|hasta|anteriores? a', between: 'desde|de|entre', to: 'a|al|hasta|y', decade: 'anos',
@@ -126,6 +127,7 @@ CRP.query = (() => {
         veryShort: 'very short|mini ?series', short: 'short|quick|one season', veryLong: 'very long|endless|marathon', long: 'long',
         movie: 'movies?|films?', season: 'this season|current season', airing: 'airing|ongoing|simulcasts?|weekly', finished: 'finished|completed?|ended',
         gems: 'hidden gems?|gems?|underrated|lesser known', popular: 'popular|famous|trending', dubbed: 'dubbed|dub|dubs',
+        noFiller: 'no filler|without filler|filler[- ]free|zero filler', lowFiller: 'little filler|low filler|barely any filler',
         ep: 'ep|eps|episodes?', rating: 'rating|score|stars?|rated', less: 'less than|under|at most|up to|max', more: 'more than|over|at least|min',
         since: 'since|from|after', until: 'before|until', between: 'from|between', to: 'to|and|until', decade: '',
       },
@@ -136,6 +138,7 @@ CRP.query = (() => {
         veryShort: 'cortissim[aeio]|miniserie', short: 'cort[aeio]|brev[ei]', veryLong: 'lunghissim[aeio]|infinit[aeio]|maratona', long: 'lung(?:o|a|hi|he)',
         movie: 'film', season: 'questa stagione|stagione attuale', airing: 'in corso|in onda|settimanal[ei]', finished: 'conclus[aeio]|finit[aeio]|complet[aeio]',
         gems: 'gemme(?: nascoste)?|sottovalutat[aeio]|poco conosciut[aeio]', popular: 'popolar[ei]|famos[aeio]', dubbed: 'doppiat[aeio]|doppiaggio',
+        noFiller: 'senza filler|niente filler', lowFiller: 'poco filler|pochi filler',
         ep: 'ep|episodi?|puntate?', rating: 'voto|valutazione|stelle', less: 'meno di|al massimo|fino a|max', more: 'piu di|almeno|min',
         since: 'dal|dopo il|dopo|a partire dal', until: 'prima del|fino al', between: 'dal|tra il|fra il', to: 'al|e|a', decade: 'anni',
       },
@@ -146,7 +149,8 @@ CRP.query = (() => {
         classic: 'klassiker|alt(?:e|en|es)?|retro', veryShort: 'sehr kurz(?:e|en|es|er)?|miniserien?', short: 'kurz(?:e|en|es|er)?', veryLong: 'sehr lang(?:e|en|es|er)?|endlos|marathon',
         long: 'lang(?:e|en|es|er)?', movie: 'filme?', season: 'diese saison|aktuelle saison', airing: 'laufend(?:e|en|es|er)?|wochentlich|simulcasts?',
         finished: 'abgeschlossen(?:e|en|es|er)?|beendet(?:e|en|es|er)?|komplett', gems: 'geheimtipps?|versteckte perlen?|unterschatzt(?:e|en|es|er)?', popular: 'beliebt(?:e|en|es|er)?|bekannt(?:e|en|es|er)?',
-        dubbed: 'synchronisiert(?:e|en|es|er)?|synchro|dub', ep: 'ep|folgen?|episoden?', rating: 'bewertung|note|sterne', less: 'weniger als|hochstens|bis zu|max|unter',
+        dubbed: 'synchronisiert(?:e|en|es|er)?|synchro|dub',
+        noFiller: 'ohne filler|keine filler|fillerfrei', lowFiller: 'wenig filler|kaum filler', ep: 'ep|folgen?|episoden?', rating: 'bewertung|note|sterne', less: 'weniger als|hochstens|bis zu|max|unter',
         more: 'mehr als|mindestens|uber|min', since: 'seit|ab|nach', until: 'vor|bis', between: 'von|zwischen', to: 'bis|und', decade: '',
       },
       fr: {
@@ -156,6 +160,7 @@ CRP.query = (() => {
         veryShort: 'tres court(?:e|es|s)?|mini[- ]?series?', short: 'court(?:e|es|s)?', veryLong: 'tres long(?:ue|ues|s)?|interminables?|marathon', long: 'long(?:ue|ues|s)?',
         movie: 'films?', season: 'cette saison|saison actuelle', airing: 'en cours|hebdomadaires?|simulcasts?', finished: 'termine(?:e|es|s)?|fini(?:e|es|s)?|complet(?:e|es|s)?|acheve(?:e|es|s)?',
         gems: 'pepites?|perles? rares?|sous[- ]estime(?:e|es|s)?|meconnu(?:e|es|s)?', popular: 'populaires?|connu(?:e|es|s)?|a la mode', dubbed: 'double(?:e|es|s)?|vf|version francaise',
+        noFiller: 'sans filler|sans remplissage|zero filler', lowFiller: 'peu de filler|peu de remplissage',
         ep: 'ep|episodes?', rating: 'note|etoiles?', less: 'moins de|au plus|jusqu.a|max', more: 'plus de|au moins|min', since: 'depuis|apres|a partir de',
         until: 'avant|jusqu.en', between: 'de|entre', to: 'a|et', decade: 'annees',
       },
@@ -168,6 +173,8 @@ CRP.query = (() => {
     add(rx(words(any('progress'))), () => ({ mine: 'progress' }), t('Empezadas'));
     add(rx(words(any('seen'))), () => ({ mine: 'seen' }), t('Ya vistas'));
     add(rx(words(any('noMature'))), () => ({ noMature: true }), t('Sin +18'));
+    add(rx(words(any('noFiller'))), () => ({ fillerMax: 0 }), t('Sin relleno'));
+    add(rx(words(any('lowFiller'))), () => ({ fillerMax: 0.1 }), t('Poco relleno (≤ 10 %)'));
 
     add(rx(`(?:${any('less')}|<=?)\\s*(\\d{1,4})\\s*${EP}\\b`), (m) => ({ epsMax: +m[1] }), (m) => '≤ ' + t('{n} ep', { n: m[1] }));
     add(rx(`(?:${any('more')}|>=?)\\s*(\\d{1,4})\\s*${EP}\\b`), (m) => ({ epsMin: +m[1] }), (m) => '≥ ' + t('{n} ep', { n: m[1] }));

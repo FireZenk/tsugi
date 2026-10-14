@@ -60,6 +60,14 @@ series, reproductor e historial siguen siendo los de Crunchyroll.
 Ajustes (⚙): idioma de doblaje que te interesa, listas de 👍 y 👎, reindexar el catálogo,
 recalcular, ver el inicio original o desactivar.
 
+## Novedades 0.7
+
+- **Relleno y resúmenes** (según MyAnimeList, vía Jikan):
+  - en la ficha: cuántos episodios son relleno, una tira con toda la serie y la lista de episodios;
+  - en Hoy, Sigue viendo y Agenda: «RELLENO» / «RESUMEN» en tu siguiente episodio y «Saltar relleno → E{n}» al siguiente canon;
+  - en Buscar: «sin relleno» / «poco relleno» (también en el panel). Las series largas se consultan poco a poco en segundo plano.
+  - Solo se etiquetan episodios cuando la numeración de Crunchyroll coincide sin ambigüedad con la de MAL.
+
 ## Novedades 0.6
 
 - **Seis idiomas**: castellano, español latino, inglés, italiano, alemán y francés.

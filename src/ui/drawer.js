@@ -159,6 +159,32 @@ CRP.drawer = (() => {
         fill(infoBox, parts);
       };
       renderInfo(CRP.ext.get(x.id));
+      // Filler / recap episodes (MyAnimeList), with a strip of the whole series.
+      const fillerBox = h('div.qvfiller');
+      const renderFiller = (all = false) => {
+        const sm = CRP.filler.summary(x.id);
+        if (!sm) return fill(fillerBox);
+        if (!sm.filler && !sm.recap) {
+          return fill(fillerBox, sm.total >= 24 ? h('div.mini', t('Sin relleno según MyAnimeList ({n} episodios).', { n: sm.total })) : null);
+        }
+        const pct = (n) => ((n / sm.total) * 100).toFixed(2) + '%';
+        const stops = ['var(--fill-canon) 0%'];
+        const marks = [...sm.fillerRanges.map((r) => [...r, 'var(--fill-filler)']), ...sm.recapRanges.map((r) => [...r, 'var(--fill-recap)'])].sort((a, b) => a[0] - b[0]);
+        for (const [a, b, c] of marks) stops.push(`var(--fill-canon) ${pct(a - 1)}`, `${c} ${pct(a - 1)}`, `${c} ${pct(b)}`, `var(--fill-canon) ${pct(b)}`);
+        const list = (rs) => CRP.filler.fmtRanges(all ? rs : rs.slice(0, 14)) + (!all && rs.length > 14 ? ' …' : '');
+        const canon = ctx.canonAfter(ctx.agendaFor(x.id));
+        fill(fillerBox,
+          h('h3', t('Relleno')),
+          h('p.fsum', sm.filler ? t('{n} de {total} episodios son relleno ({pct} %)', { n: sm.filler, total: sm.total, pct: Math.round(sm.share * 100) }) : t('Sin relleno'),
+            sm.recap ? ' · ' + (sm.recap === 1 ? t('1 resumen') : t('{n} resúmenes', { n: sm.recap })) : ''),
+          h('div.fstrip', { style: { background: `linear-gradient(90deg, ${stops.join(', ')}, var(--fill-canon) 100%)` }, title: t('Episodios 1 a {n}: canon, relleno y resúmenes', { n: sm.total }) }),
+          sm.filler ? h('p.franges', h('b', t('Relleno') + ': '), list(sm.fillerRanges)) : null,
+          sm.recap ? h('p.franges', h('b', t('Resúmenes') + ': '), list(sm.recapRanges)) : null,
+          !all && (sm.fillerRanges.length > 14 || sm.recapRanges.length > 14) ? h('button.linkbtn', { onclick: () => renderFiller(true) }, t('Ver todos')) : null,
+          canon ? h('a.btn.small', { href: M.episodeUrl(canon.ep) }, ui.icon('play', 14), t('Saltar al siguiente canon: {ep}', { ep: M.epLabel(canon.ep) })) : null,
+          h('div.mini', t('Según MyAnimeList (numeración de MAL).') + ' ', h('a', { href: `https://myanimelist.net/anime/${sm.mal}/_/episode`, target: '_blank', rel: 'noopener' }, t('Ver la lista'))));
+      };
+      renderFiller();
       // Watch order across the franchise (AniList relations), when there's more than one entry.
       const orderBox = h('div.qvorder');
       const FORMAT = { TV: t('Serie'), TV_SHORT: t('Serie corta'), MOVIE: t('Película'), OVA: 'OVA', ONA: 'ONA', SPECIAL: t('Especial'), MUSIC: t('Música') };
@@ -210,6 +236,7 @@ CRP.drawer = (() => {
             h('h4', t('Subtítulos')), x.subs && x.subs.length ? langChips(x.subs, CRP.util.contentLocale()) : h('div.mini', '—'))),
         extBox,
         infoBox,
+        fillerBox,
         desc,
         orderBox,
         h('h3', t('Temporadas')), seasonsBox,
@@ -221,6 +248,7 @@ CRP.drawer = (() => {
           if (my !== seq) return;
           renderExt(e, null);
           renderInfo(e);
+          if (x.kind !== 'movie_listing' && x.episodes >= 12) CRP.filler.forSeries(x).then(() => { if (my === seq) renderFiller(); }).catch(() => {});
           CRP.ext.watchOrder(x).then((list) => { if (my === seq) renderOrder(list); }).catch(() => {});
           const mal = e && e.mal ? await CRP.ext.malScore(e.mal).catch(() => null) : null;
           if (my === seq && mal) renderExt(e, mal);

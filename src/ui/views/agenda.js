@@ -15,12 +15,19 @@ CRP.views.agenda = (ctx) => {
     return ui.img(rec && rec.poster, rec ? rec.title : '', 'mini');
   };
   const openSeries = (s) => ctx.openSeries((CRP.catalog.get && CRP.catalog.get(s.id)) || { id: s.id, title: s.title, slug: s.slug, genres: [], audio: [], subs: [] });
-  const playLink = (s) => (s.next
-    ? [
+  const playLink = (s) => {
+    if (!s.next) return null;
+    const canon = ctx.canonAfter(s);
+    return [
       h('a.btn.small', { href: M.episodeUrl(s.next), title: s.next.title }, ui.icon('play', 14), M.epLabel(s.next)),
+      canon ? h('a.btn.ghost.small', { href: M.episodeUrl(canon.ep), title: canon.skipped === 1 ? t('Te saltas 1 episodio de relleno') : t('Te saltas {n} episodios de relleno', { n: canon.skipped }) }, t('Saltar relleno → {ep}', { ep: M.epLabel(canon.ep) })) : null,
       h('button.btn.ghost.small.icononly', { title: t('Marcar {ep} como visto', { ep: M.epLabel(s.next) }), onclick: () => ctx.markWatched({ ...s.next, seriesId: s.id, seriesTitle: s.title }) }, ui.icon('check', 14)),
-    ]
-    : null);
+    ];
+  };
+  const fillerNote = (s) => {
+    const k = s.next ? ctx.fillerKind(s.id, s.next) : null;
+    return k ? h('span.ftag' + (k === 'recap' ? '.recap' : ''), k === 'recap' ? t('El siguiente es un resumen') : t('El siguiente es relleno')) : null;
+  };
   const schedule = (s) => {
     if (!s.nextRelease) return null;
     const d = new Date(s.nextRelease);
@@ -60,6 +67,7 @@ CRP.views.agenda = (ctx) => {
           s.audio && s.audio !== 'ja-JP' ? langName(s.audio) : null,
           s.lastWatched ? t('visto {ago}', { ago: timeAgo(new Date(s.lastWatched).toISOString()) }) : null,
         ].filter(Boolean).join(' · ')),
+        fillerNote(s),
         s.started ? h('div.sbar', h('i', { style: { width: Math.round(ratio * 100) + '%' } })) : null,
         schedule(s) ? h('div.ssched', ui.icon('calendar', 13), schedule(s)) : null,
       ),
@@ -178,6 +186,7 @@ CRP.views.agenda = (ctx) => {
   function refresh() { ctx.data.agenda.reset(); start(); }
 
   ctx.on('progress', 'agenda', () => el.isConnected && start());
+  ctx.on('filler', 'agenda', () => el.isConnected && ctx.data.agenda.now() && render(ctx.data.agenda.now()));
   start();
   return { el, title: t('Agenda'), refresh };
 };

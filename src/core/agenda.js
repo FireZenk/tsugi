@@ -25,13 +25,25 @@ CRP.agenda = (() => {
     return v ? v.guid : season.id;
   };
   const available = (e, now) => !e.airDate || Date.parse(e.airDate) <= now;
+  // Episode numbers usable as series-wide numbers (to match MAL's filler list): the
+  // first season, or a later one that doesn't restart at 1.
+  const markAbs = (eps, seasonIndex) => {
+    const first = Math.min(...eps.map((e) => (+e.number > 0 ? +e.number : Infinity)));
+    const abs = seasonIndex === 0 || (first !== Infinity && first > 1);
+    eps.forEach((e) => { e.abs = abs; });
+    return eps;
+  };
+  const slimEp = (e, audio) => ({
+    id: (e.byAudio && e.byAudio[audio]) || e.id, kind: 'episode', number: e.number, abs: !!e.abs, title: e.title, slug: e.slug,
+    season: e.season, seasonId: e.seasonId, durationMs: e.durationMs, thumb: e.thumb, airDate: e.airDate, versions: e.versions,
+  });
   const after = (e, last) => (e.seq != null && last.seq != null ? e.seq > last.seq : +e.number > +last.number);
 
   async function forSeries(f, now) {
     const last = f.stats && f.stats.lastEntry;
     const lastEp = last ? M.episode(last.panel) : null;
     const audio = (lastEp && lastEp.audio) || 'ja-JP';
-    const cacheKey = `ag:${f.id}:${lastEp ? lastEp.id : 'none'}:${last && last.fully_watched ? 1 : 0}:${audio}`;
+    const cacheKey = `ag:${f.id}:v2:${lastEp ? lastEp.id : 'none'}:${last && last.fully_watched ? 1 : 0}:${audio}`;
     const cached = await store.cacheGet(cacheKey, TTL);
     if (cached) return cached;
 
@@ -43,8 +55,8 @@ CRP.agenda = (() => {
     if (lastEp && idx < 0) idx = Math.max(0, seasons.findIndex((s) => s.season_number === lastEp.season));
 
     const fetchEps = async (season) => (await api.episodes(seasonFor(season, audio))).map(M.cmsEpisode).filter(Boolean);
-    const curEps = idx >= 0 ? await fetchEps(seasons[idx]) : [];
-    const latestEps = idx === seasons.length - 1 ? curEps : await fetchEps(latest);
+    const curEps = idx >= 0 ? markAbs(await fetchEps(seasons[idx]), idx) : [];
+    const latestEps = idx === seasons.length - 1 ? curEps : markAbs(await fetchEps(latest), seasons.length - 1);
 
     // ---- backlog ----
     let pending = [];
@@ -61,6 +73,7 @@ CRP.agenda = (() => {
     // play the version in the audio the user watches it in
     const first = pending[0] || null;
     const next = first && first.byAudio && first.byAudio[audio] ? { ...first, id: first.byAudio[audio] } : first;
+    const pendingEps = pending.slice(0, 150).map((e) => slimEp(e, audio));
     const totalEps = seasons.reduce((a, s) => a + (s.number_of_episodes || 0), 0);
 
     // ---- schedule ----
@@ -88,6 +101,7 @@ CRP.agenda = (() => {
       pendingCount,
       pendingMin,
       next,
+      pendingEps,
       totalEps,
       airing,
       nextRelease,

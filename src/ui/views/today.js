@@ -170,17 +170,25 @@ CRP.views.today = (ctx) => {
     }));
   }
 
+  // "RELLENO" / "RESUMEN" tag for an episode (MyAnimeList), or null
+  const fillerTag = (seriesId, e) => {
+    const k = ctx.fillerKind(seriesId, e);
+    return k ? h('span.ftag' + (k === 'recap' ? '.recap' : ''), k === 'recap' ? t('RESUMEN') : t('RELLENO')) : null;
+  };
+
   function bigCard(c) {
     if (c.kind === 'ep') {
       const e = c.e;
+      const canon = ctx.canonAfter(c.series);
       return h('div.bigpick',
         h('a.bpart', { href: M.episodeUrl(e), style: e.thumb ? { backgroundImage: `url("${e.thumb}")` } : null }, h('span.playbtn.on', ui.icon('play', 40))),
         h('div.bptext',
-          h('div.bplabel', c.label),
+          h('div.bplabel', fillerTag(c.series.id, e), c.label),
           h('h3', e.seriesTitle || c.series.title),
           h('div.bpsub', `${M.epLabel(e)} — ${e.title}`),
           h('div.bpacts',
             h('a.btn', { href: M.episodeUrl(e) }, ui.icon('play', 16), t('Ver ahora')),
+            canon ? h('a.btn.ghost', { href: M.episodeUrl(canon.ep), title: canon.skipped === 1 ? t('Te saltas 1 episodio de relleno') : t('Te saltas {n} episodios de relleno', { n: canon.skipped }) }, t('Saltar relleno → {ep}', { ep: M.epLabel(canon.ep) })) : null,
             h('button.btn.ghost', { title: t('Marcar este episodio como visto'), onclick: () => ctx.markWatched(e) }, ui.icon('check', 14), t('Ya lo vi')),
             h('button.btn.ghost', { onclick: () => ctx.openSeries(cat.get(c.series.id) || { id: c.series.id, title: c.series.title, genres: [], audio: [], subs: [] }) }, t('Ficha')),
             h('button.btn.ghost', { onclick: () => { offset++; renderPick(); } }, ui.icon('refresh', 14), t('Otra')))));
@@ -203,7 +211,7 @@ CRP.views.today = (ctx) => {
   function miniCard(c) {
     if (c.kind === 'ep') {
       return h('a.altpick', { href: M.episodeUrl(c.e) }, ui.img(c.e.thumb, c.e.title, 'altimg'),
-        h('div', h('b', c.e.seriesTitle || c.series.title), h('small', `${M.epLabel(c.e)} · ${c.label}`)));
+        h('div', h('b', c.e.seriesTitle || c.series.title), h('small', fillerTag(c.series.id, c.e), `${M.epLabel(c.e)} · ${c.label}`)));
     }
     return h('button.altpick', { onclick: () => ctx.openSeries(c.s, { reason: c.why }) }, ui.img(c.s.wide || c.s.poster, c.s.title, 'altimg'),
       h('div', h('b', c.s.title), h('small', [c.s.rating ? `★ ${c.s.rating.toFixed(1)}` : null, ...(c.traits || []).slice(0, 2)].filter(Boolean).join(' · '))));
@@ -234,6 +242,7 @@ CRP.views.today = (ctx) => {
   }
 
   // ---------------------------------------------------------- continue
+  const fillerBadge = (e) => { const k = ctx.fillerKind(e.seriesId, e); return k === 'filler' ? t('RELLENO') : k === 'recap' ? t('RESUMEN') : null; };
   async function renderContinue() {
     if (!ctx.loggedIn) { contBlock.el.hidden = true; return; }
     contBlock.setBody(ui.skeleton('ep', 5));
@@ -246,7 +255,7 @@ CRP.views.today = (ctx) => {
       contBlock.setBody(ui.row(list.map(({ it, e }) => {
         const p = it.playhead && e.durationMs ? (it.playhead * 1000) / e.durationMs : 0;
         return ui.episodeCard(e, {
-          progress: p > 0.02 ? p : 0, badge: it.new ? t('NUEVO') : null, sub: p > 0.02 ? null : t('Siguiente episodio'),
+          progress: p > 0.02 ? p : 0, badge: fillerBadge(e) || (it.new ? t('NUEVO') : null), sub: p > 0.02 ? null : t('Siguiente episodio'),
           acts: [
             { icon: 'check', title: t('Marcar como visto'), run: () => ctx.markWatched(e) },
             { icon: 'x', title: t('Quitar de Sigue viendo'), cls: 'hide', run: () => ctx.hideContinue(e) },
@@ -318,6 +327,7 @@ CRP.views.today = (ctx) => {
     if (ctx.loggedIn) ctx.data.agenda().then((a) => { ag = a; renderPick(); renderWeek(); }).catch(() => {});
   });
   ctx.on('watchlist', 'today', renderShelves);
+  ctx.on('filler', 'today', () => { renderPick(); renderContinue(); });
   ctx.on('ext', 'today', renderShelves);
   CRP.catalog.load().then(() => { renderShelves(); renderMood(); }).catch(() => {});
   ctx.on('ext', 'today-mood', renderMood);

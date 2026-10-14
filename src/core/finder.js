@@ -51,7 +51,7 @@ CRP.finder = (() => {
 
   const hasFilters = (F) => !!(F.audio.length || F.len || F.epsMin || F.epsMax || F.ratingMin || F.alMin || F.yearMin || F.yearMax ||
     F.status || F.season || F.genresIn.length || F.genresOut.length || F.tagsIn.length || F.tagsOut.length ||
-    F.studio || F.source || F.mine || F.noMature || F.likeIds);
+    F.studio || F.source || F.mine || F.noMature || F.likeIds || F.fillerMax != null);
 
   /**
    * @returns {{ p, F, list, sortId, ignored, likePending }}

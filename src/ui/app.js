@@ -26,9 +26,10 @@ CRP.app = (() => {
     return { on: (fn) => { fns.add(fn); return () => fns.delete(fn); }, emit: (v) => fns.forEach((fn) => fn(v)) };
   }
 
+  let fillerOff = null;
   function createCtx(root, auth) {
     const loggedIn = !auth.anonymous;
-    const listeners = { watchlist: new Map(), taste: new Map(), ext: new Map(), shelves: new Map(), progress: new Map() };
+    const listeners = { watchlist: new Map(), taste: new Map(), ext: new Map(), shelves: new Map(), progress: new Map(), filler: new Map() };
     const emit = (ev) => (listeners[ev] || new Map()).forEach((fn) => { try { fn(); } catch (e) { console.warn('[CR+]', e); } });
     let watchlistIds = new Set();
     let stats = new Map();
@@ -112,8 +113,20 @@ CRP.app = (() => {
       const ag = await CRP.agenda.build({ stats, watchlist, watchedIds, onProgress: agendaProgress.emit });
       agendaById = new Map(ag.series.map((s) => [s.id, s]));
       writeFollowList(ag, watchlist).catch(() => {});
+      fillerForFollowed(ag);
       return ag;
     });
+    // Filler lists for what you're watching (long series only), so the next episode can
+    // say "filler" and offer the next canon one.
+    async function fillerForFollowed(ag) {
+      if (store.get().ext === false) return;
+      for (const s of ag.series.filter((x) => x.state === 'active' && x.totalEps >= 24)) {
+        try { await CRP.filler.forSeries(CRP.catalog.get(s.id) || { id: s.id }); } catch (e) { break; }
+      }
+    }
+    let fillerTimer = null;
+    if (fillerOff) fillerOff(); // one listener, for the current ctx
+    fillerOff = CRP.filler.onUpdate(() => { clearTimeout(fillerTimer); fillerTimer = setTimeout(() => emit('filler'), 300); });
 
     const ctx = {
       root, auth, loggedIn, data,
@@ -134,6 +147,19 @@ CRP.app = (() => {
       },
       inWatchlist: (id) => watchlistIds.has(id),
       agendaFor: (id) => agendaById.get(id),
+      // 'filler' | 'recap' | null for an episode whose number is series-wide (agenda `abs`)
+      fillerKind(seriesId, ep) {
+        if (!ep) return null;
+        const s = agendaById.get(seriesId);
+        const known = ep.abs != null ? ep : s && s.pendingEps && s.pendingEps.find((e) => e.id === ep.id || (e.versions || []).includes(ep.id));
+        return known && known.abs ? CRP.filler.kindOf(seriesId, known.number) : null;
+      },
+      // When your next episode is filler/recap: the first pending one that isn't.
+      canonAfter(s) {
+        if (!s || !s.pendingEps || !s.pendingEps.length || !ctx.fillerKind(s.id, s.pendingEps[0])) return null;
+        const i = s.pendingEps.findIndex((e) => !ctx.fillerKind(s.id, e));
+        return i > 0 ? { ep: { ...s.pendingEps[i], seriesId: s.id, seriesTitle: s.title }, skipped: i } : null;
+      },
       dub: () => store.dubLocale(),
       on(ev, key, fn) { listeners[ev].set(key, fn); },
       emit,
@@ -506,6 +532,8 @@ CRP.app = (() => {
       const st = CRP.ext.stats();
       refreshVocabulary();
       if (st.matched) ctx.emit('ext');
+      // then, slowly, the filler lists of long series (for the "little filler" search)
+      return CRP.filler.enrich(index.items);
     }).catch((e) => console.warn('[CR+] AniList enrichment failed', e));
     CRP.catalog.load().then(run).catch(() => {});
     if (!enrichOff) enrichOff = CRP.catalog.onUpdate(run);
@@ -608,7 +636,7 @@ CRP.app = (() => {
       labelInput();   // the UI language may have changed
       ctx = createCtx(shadow, auth);
       await Promise.race([Promise.all([ctx.data.categories().catch(() => {}), CRP.ext.load()]), new Promise((r) => setTimeout(r, 1500))]);
-      await CRP.profile.load().catch(() => {});
+      await Promise.all([CRP.profile.load().catch(() => {}), CRP.filler.load().catch(() => {})]);
       refreshVocabulary();
       startEnrichment(ctx);
       if (disposed) return;

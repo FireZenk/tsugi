@@ -13,6 +13,9 @@
   --good: #4fd18b;
   --bad: #ff6262;
   --info: #7aa7ff;
+  --fill-canon: #3a3a4a;
+  --fill-filler: #ff9447;
+  --fill-recap: #7aa7ff;
   --radius: 10px;
   --gutter: clamp(16px, 2.6vw, 40px);
   --poster: 160px;
@@ -501,3 +504,16 @@ a.card:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; bo
 /* error box: retry + "load without data saver" */
 .empty.err .btns.row { display: flex; flex-direction: row; flex-wrap: wrap; gap: 8px; }
 .hint.warn { color: var(--accent-2); }
+
+/* filler / recap (quick view, cards, agenda) */
+.qvfiller { padding: 14px 22px 0; display: flex; flex-direction: column; gap: 8px; }
+.qvfiller:empty { display: none; }
+.qvfiller h3 { margin: 0; }
+.qvfiller .fsum { margin: 0; color: var(--text); }
+.qvfiller .fstrip { height: 10px; border-radius: 5px; background: var(--fill-canon); }
+.qvfiller .franges { margin: 0; color: var(--muted); font-size: 13px; line-height: 1.5; }
+.qvfiller .franges b { color: var(--text); font-weight: 600; }
+.qvfiller .btn.small { align-self: flex-start; }
+.ftag { display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: 11px; font-weight: 700; letter-spacing: .02em; background: rgba(255, 148, 71, .16); color: var(--fill-filler); }
+.ftag.recap { background: rgba(122, 167, 255, .16); color: var(--fill-recap); }
+.bptext .ftag { margin-right: 6px; }
